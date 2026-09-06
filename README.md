@@ -81,11 +81,58 @@ anima esse traço quando ele entra na tela.
 
 ## Antes de publicar
 
-1. **Trocar os links.** Todos os `href="#"` são provisórios — há um comentário
-   no topo do `index.html` listando os quatro grupos (orçamento, aluno, os cinco
-   cards, e as redes do rodapé).
+1. **Trocar os links.** `grep TROCAR- index.html` lista os 11 endereços
+   provisórios (orçamento, os cinco cards, e-mail e as redes). São fragmentos
+   inexistentes de propósito: ao contrário de `href="#"`, um fragmento que não
+   casa com nada **não** rola a página, então nenhum clique joga o visitante de
+   volta ao topo enquanto os links não entram. "Quero ser aluno" já aponta para
+   `#cursos`, que existe nesta página.
 2. **Confirmar o texto marcado com `CONFIRMAR`.** Só o número "+2.500 alunos"
-   veio do cliente. As linhas de apoio ("100% online", "no seu ritmo", o prazo
-   de resposta) e a fala assinada pelo Gabriel são rascunho: precisam ser
-   confirmadas ou trocadas antes de ir ao ar.
+   veio do cliente. Tudo o mais é rascunho, e o que afirma algo verificável está
+   marcado: qual oferta destacar, a descrição do público, a fala assinada pelo
+   Gabriel (escrita para ele, não dita por ele), e o formato dos cinco produtos
+   — os rótulos CURSO/MATERIAL, os prefixos "Curso de " e as descrições foram
+   inferidos só a partir dos nomes.
+
+   O selo do primeiro card diz "Comece por aqui", não "Mais vendido": um
+   ranking de vendas é afirmação verificável, e o cliente não passou esse dado.
 3. Trocar o ano do rodapé quando virar o ano.
+
+## Limitação conhecida: a fonte arredondada
+
+O briefing pede tipografia arredondada e o projeto não pode fazer requisição de
+rede, então a pilha usa só fontes de sistema. Na prática o resultado arredondado
+aparece em Apple (`ui-rounded` / SF Pro Rounded) e em quem já tem Varela Round,
+Nunito ou Quicksand instaladas. **No Android e no Windows sem Office a página cai
+em Roboto/Segoe — legível e bem espaçada, mas não arredondada.**
+
+Para resolver sem depender de CDN, coloque um arquivo local e adicione no topo
+do `styles.css`:
+
+```css
+@font-face{
+  font-family:"GJ Rounded";
+  src:url("assets/gj-rounded.woff2") format("woff2");
+  font-weight:400 700;          /* variável; se for estático, um @font-face por peso */
+  font-display:swap;
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+2122;
+}
+```
+
+e prefixe a família em `--font-display`. Baloo 2, Nunito e Quicksand (SIL OFL)
+servem; subsetar para latino + acentos do português deixa o arquivo em ~20 KB.
+
+## Verificações feitas
+
+Medidas em Chromium, contra os arquivos como estão:
+
+- Sem estouro horizontal e sem texto cortado em 11 larguras (320 → 2560), cada
+  uma sob quatro condições: padrão, fonte-base 24px, fonte-base 32px (zoom de
+  texto 200%) e o espaçamento do WCAG 1.4.12. 44 casos, todos limpos.
+- Os 33 pares de contraste (texto e não-texto) calculados e aprovados em AA.
+- Modo de cores forçadas do Windows: a palavra grifada do rodapé se mantém
+  legível (14,60:1).
+- Impressão: os seis grifos saem desenhados mesmo sem rolagem.
+- Sem JS, e com movimento reduzido: a página renderiza completa.
+- Os 13 pontos de tabulação são alcançáveis e todos têm anel de foco; o link
+  "pular para o conteúdo" aparece e move o foco de verdade.

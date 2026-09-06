@@ -12,18 +12,24 @@
 <meta property="og:description" content="Cursos, materiais e orçamentos de design e marketing digital. Mais de 2.500 alunos.">
 <meta property="og:locale" content="pt_BR">
 <link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='14' fill='%2310231B'/%3E%3Crect x='7' y='15.5' width='26' height='9' rx='4.5' fill='%23FFD429' transform='rotate(-20 20 20)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2040'%3E%3Crect%20width='40'%20height='40'%20rx='14'%20fill='%2310231B'/%3E%3Crect%20x='7'%20y='15.5'%20width='26'%20height='9'%20rx='4.5'%20fill='%23FFD429'%20transform='rotate(-20%2020%2020)'/%3E%3C/svg%3E">
 
 <!-- =========================================================
      LINKS A SUBSTITUIR ANTES DE PUBLICAR
-     Todos os href="#" abaixo são provisórios. Trocar por:
-       1. "Quero um orçamento"  → link do WhatsApp / formulário
-          ex.: https://wa.me/55DDDNUMERO?text=Oi%20Gabriel...
-       2. "Quero ser aluno"     → página de vendas / checkout
-       3. Os 5 botões dos cards → link de cada curso/material
-       4. Rodapé                → Instagram, YouTube, e-mail, WhatsApp
-     Os trechos marcados com "CONFIRMAR" sao texto de rascunho
-     só o número "+2.500 alunos" veio do cliente.
+     Todo href que começa com "#TROCAR-" é provisório: procure por
+     TROCAR- no arquivo e troque cada um pelo endereço real.
+       #TROCAR-orcamento   → WhatsApp ou formulário de orçamento
+                             ex.: https://wa.me/55DDDNUMERO?text=Oi%20Gabriel
+       #TROCAR-<oferta>    → página de venda de cada curso/material
+       #TROCAR-<rede>      → Instagram, YouTube, e-mail, WhatsApp
+     Um fragmento inexistente não rola a página (ao contrário de href="#",
+     que joga o visitante de volta ao topo), então nenhum clique quebra a
+     leitura enquanto os links não entram.
+     "Quero ser aluno" já aponta para #cursos, que existe nesta página.
+
+     TEXTO: só o número "+2.500 alunos" veio do cliente. Todo o resto é
+     rascunho; os pontos que afirmam algo verificável estão marcados com
+     CONFIRMAR ao lado.
      ========================================================= -->
 </head>
 <body>
@@ -59,7 +65,7 @@
   </div>
 </header>
 
-<main id="conteudo">
+<main id="conteudo" tabindex="-1">
 
   <!-- ============ 1. TOPO / BOAS-VINDAS ============ -->
   <section class="hero" aria-labelledby="h-hero">
@@ -72,8 +78,8 @@
         <p class="instrucao">Quer <strong class="grifo grifo--sublinha" style="--i:1"><span>um orçamento para o seu projeto</span></strong> ou quer <strong class="grifo grifo--sublinha" style="--i:2"><span>virar meu aluno</span></strong>? É só clicar em um dos botões aqui embaixo.</p>
 
         <div class="cta-row">
-          <a class="btn btn--primary" href="#">Quero um orçamento</a>
-          <a class="btn btn--secondary" href="#">Quero ser aluno</a>
+          <a class="btn btn--primary" href="#TROCAR-orcamento">Quero um orçamento</a>
+          <a class="btn btn--secondary" href="#cursos">Quero ser aluno</a>
         </div>
 
         <!-- CONFIRMAR: prazo de resposta -->
@@ -97,7 +103,8 @@
             <span class="stat__num">+2.500</span>
             <span class="stat__word grifo" style="--i:0"><span>alunos</span></span>
           </h2>
-          <p class="stat__support">já passaram pelos meus cursos e materiais — de quem nunca tinha aberto o Figma a estúdio com fila de cliente.</p>
+          <!-- CONFIRMAR: descrição do público -->
+          <p class="stat__support">já passaram pelos meus cursos e materiais — de quem nunca abriu o Figma a quem já toca o próprio estúdio.</p>
           <!-- CONFIRMAR: formato e disponibilidade das ofertas -->
           <ul class="stat__mini">
             <li>5 cursos e materiais</li>
@@ -106,9 +113,11 @@
           </ul>
         </div>
 
+        <!-- CONFIRMAR: fala escrita para o Gabriel, não é uma frase dele.
+             Ele precisa reescrever ou aprovar antes de publicar. -->
         <div class="stat__quote">
-          <blockquote>Eu ensino exatamente o que uso todo dia no estúdio. Nada de teoria solta: você sai de cada aula com uma peça pronta para entregar.</blockquote>
-          <cite>Gabriel Juste · Design e marketing digital</cite>
+          <blockquote>Eu ensino o que uso no dia a dia com cliente. Nada de teoria solta: o foco é você conseguir aplicar e cobrar por isso.</blockquote>
+          <p class="cite">Gabriel Juste · Design e marketing digital</p>
         </div>
       </div>
     </div>
@@ -121,6 +130,9 @@
       <h2 id="h-cursos">Escolha <span class="bloco">por onde</span> começar.</h2>
       <p class="cursos__sub">Cinco caminhos diretos: dois cursos completos e três materiais prontos para usar no seu dia a dia.</p>
 
+      <!-- CONFIRMAR: o cliente passou só os cinco nomes. Os rótulos
+           CURSO/MATERIAL, os prefixos "Curso de ", as cinco descrições e a
+           contagem "dois cursos e três materiais" acima são rascunho. -->
       <ul class="cards">
 
         <!-- 1. POSTS E CARROSSÉIS -->
@@ -129,8 +141,8 @@
             <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet" width="100%" height="100%" aria-hidden="true" focusable="false">
               <rect width="400" height="320" fill="#6B21E8"/>
               <rect x="44" y="54" width="132" height="212" rx="20" fill="#E4DAFB"/>
-              <path d="M356 146l18 14-18 14" fill="none" stroke="#10231B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
               <rect x="336" y="54" width="132" height="212" rx="20" fill="#E4DAFB"/>
+              <path d="M352 146l18 14-18 14" fill="none" stroke="#10231B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
               <rect x="190" y="48" width="132" height="212" rx="20" fill="#10231B"/>
               <rect x="190" y="42" width="132" height="212" rx="20" fill="#FFFCF5" stroke="#10231B" stroke-width="3"/>
               <rect x="206" y="96" width="100" height="10" rx="5" fill="#10231B"/>
@@ -143,13 +155,15 @@
               <rect x="228" y="268" width="32" height="10" rx="5" fill="#FFD429" stroke="#10231B" stroke-width="2.5"/>
               <use href="#grifo-mark" x="26" y="278"/>
             </svg>
-            <span class="card__badge">Mais vendido</span>
+            <!-- CONFIRMAR: qual oferta destacar. Era "Mais vendido" — trocado porque
+                 isso afirma um ranking de vendas que o cliente não forneceu. -->
+            <span class="card__badge">Comece por aqui</span>
           </div>
           <div class="card__body">
             <p class="kicker">Curso</p>
             <h3>Curso de Posts e Carrosséis</h3>
             <p class="card__desc">Do primeiro ao último slide: como criar posts e carrosséis que prendem a atenção e viram cliente.</p>
-            <a class="btn btn--card" href="#" aria-label="Ver o Curso de Posts e Carrosséis">Ver o curso
+            <a class="btn btn--card" href="#TROCAR-posts-carrosseis" aria-label="Ver o Curso de Posts e Carrosséis">Ver o curso
               <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="#seta-dir"/></svg>
             </a>
           </div>
@@ -168,9 +182,9 @@
               <rect x="48" y="136" width="168" height="10" rx="5" fill="#10231B" opacity=".28"/>
               <rect x="48" y="162" width="148" height="10" rx="5" fill="#10231B" opacity=".28"/>
               <rect x="48" y="188" width="108" height="10" rx="5" fill="#10231B" opacity=".28"/>
-              <rect x="48" y="225" width="132" height="40" rx="20" fill="#10231B"/>
-              <rect x="48" y="220" width="132" height="40" rx="20" fill="#6B21E8"/>
-              <rect x="82" y="236" width="64" height="8" rx="4" fill="#FFFCF5"/>
+              <rect x="48" y="201" width="132" height="40" rx="20" fill="#10231B"/>
+              <rect x="48" y="196" width="132" height="40" rx="20" fill="#6B21E8"/>
+              <rect x="82" y="212" width="64" height="8" rx="4" fill="#FFFCF5"/>
               <use href="#grifo-mark" x="26" y="278"/>
             </svg>
           </div>
@@ -178,7 +192,7 @@
             <p class="kicker">Curso</p>
             <h3>Curso de Landing Pages</h3>
             <p class="card__desc">Estrutura, texto e design de páginas que transformam visita em venda. Sem escrever uma linha de código.</p>
-            <a class="btn btn--card" href="#" aria-label="Ver o Curso de Landing Pages">Ver o curso
+            <a class="btn btn--card" href="#TROCAR-landing-pages" aria-label="Ver o Curso de Landing Pages">Ver o curso
               <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="#seta-dir"/></svg>
             </a>
           </div>
@@ -216,14 +230,14 @@
             <p class="kicker">Material</p>
             <h3>Documentos Criativos</h3>
             <p class="card__desc">Pacote de modelos editáveis para briefing, apresentação e entrega com cara de estúdio grande.</p>
-            <a class="btn btn--card" href="#" aria-label="Ver o material Documentos Criativos">Ver o material
+            <a class="btn btn--card" href="#TROCAR-documentos-criativos" aria-label="Ver o material Documentos Criativos">Ver o material
               <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="#seta-dir"/></svg>
             </a>
           </div>
         </article></li>
 
         <!-- 4. GESTÃO DE ESTÚDIO -->
-        <li class="card card--wide"><article>
+        <li class="card"><article>
           <div class="card__cover" style="--cover-bg:#10231B">
             <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet" width="100%" height="100%" aria-hidden="true" focusable="false">
               <rect width="400" height="320" fill="#10231B"/>
@@ -237,8 +251,9 @@
               <rect x="114" y="148" width="96"  height="26" rx="13" fill="#C9B9F5"/>
               <rect x="224" y="148" width="132" height="26" rx="13" fill="#F7F1E4" opacity=".16"/>
               <rect x="32"  y="198" width="176" height="26" rx="13" fill="#F7F1E4" opacity=".16"/>
-              <rect x="222" y="198" width="88"  height="26" rx="13" fill="#FFD429"/>
-              <path d="M246 36v196" stroke="#FFD429" stroke-width="3" stroke-linecap="round"/>
+              <rect x="222" y="198" width="88"  height="26" rx="13" fill="#C9B9F5"/>
+              <path d="M246 36v188" stroke="#10231B" stroke-width="7" stroke-linecap="round"/>
+              <path d="M246 36v188" stroke="#FFD429" stroke-width="3" stroke-linecap="round"/>
               <circle cx="246" cy="36" r="6" fill="#FFD429"/>
               <rect x="96" y="282" width="232" height="12" rx="6" fill="#F7F1E4" opacity=".18"/>
               <rect x="96" y="282" width="158" height="12" rx="6" fill="#FFD429"/>
@@ -249,14 +264,14 @@
             <p class="kicker">Material</p>
             <h3>Gestão de Estúdio</h3>
             <p class="card__desc">O sistema que eu uso para organizar prazo, cliente e dinheiro sem precisar virar a noite.</p>
-            <a class="btn btn--card" href="#" aria-label="Ver o material Gestão de Estúdio">Ver o material
+            <a class="btn btn--card" href="#TROCAR-gestao-de-estudio" aria-label="Ver o material Gestão de Estúdio">Ver o material
               <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="#seta-dir"/></svg>
             </a>
           </div>
         </article></li>
 
         <!-- 5. PROPOSTA COMERCIAL -->
-        <li class="card card--wide"><article>
+        <li class="card"><article>
           <div class="card__cover" style="--cover-bg:#F7F1E4">
             <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet" width="100%" height="100%" aria-hidden="true" focusable="false">
               <rect width="400" height="320" fill="#F7F1E4"/>
@@ -271,8 +286,8 @@
                 <path d="M110 232c14-18 24-20 30-10s0 26 10 26 18-24 30-24 14 14 26 8 20-16 24-22"
                       fill="none" stroke="#10231B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
               </g>
-              <circle cx="78" cy="72" r="34" fill="none" stroke="#6B21E8" stroke-width="6"/>
-              <rect x="61" y="67" width="34" height="10" rx="5" fill="#6B21E8" transform="rotate(-14 78 72)"/>
+              <circle cx="336" cy="248" r="26" fill="none" stroke="#6B21E8" stroke-width="6"/>
+              <path d="M325 248l8 9 15-17" fill="none" stroke="#6B21E8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
               <use href="#grifo-mark" x="26" y="278"/>
             </svg>
           </div>
@@ -280,7 +295,7 @@
             <p class="kicker">Material</p>
             <h3>Proposta Comercial</h3>
             <p class="card__desc">Modelo pronto para apresentar preço com segurança e fechar mais projetos.</p>
-            <a class="btn btn--card" href="#" aria-label="Ver o modelo de Proposta Comercial">Ver o modelo
+            <a class="btn btn--card" href="#TROCAR-proposta-comercial" aria-label="Ver o modelo de Proposta Comercial">Ver o modelo
               <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="#seta-dir"/></svg>
             </a>
           </div>
@@ -301,26 +316,26 @@
     </div>
 
     <div class="rodape__right">
-      <a class="btn btn--secondary" href="#">Quero um orçamento</a>
+      <a class="btn btn--secondary" href="#TROCAR-orcamento">Quero um orçamento</a>
       <nav aria-label="Contato e redes">
         <ul class="contatos">
-          <li><a class="btn btn--cream" href="#">
+          <li><a class="btn btn--cream" href="#TROCAR-instagram">
             <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <rect x="2.5" y="2.5" width="15" height="15" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="14.6" cy="5.4" r="1.15" fill="currentColor"/>
             </svg>Instagram</a></li>
-          <li><a class="btn btn--cream" href="#">
+          <li><a class="btn btn--cream" href="#TROCAR-youtube">
             <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <rect x="1.5" y="4" width="17" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
               <path d="M8.4 7.6l4.6 2.4-4.6 2.4z" fill="currentColor"/>
             </svg>YouTube</a></li>
-          <li><a class="btn btn--cream" href="#">
+          <li><a class="btn btn--cream" href="#TROCAR-email">
             <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <rect x="1.5" y="4" width="17" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
               <path d="M2.6 5.6L10 11l7.4-5.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>E-mail</a></li>
-          <li><a class="btn btn--cream" href="#">
+          <li><a class="btn btn--cream" href="#TROCAR-whatsapp">
             <svg class="btn__arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <path d="M17 9.6a7 7 0 0 1-10.3 6.2L2.8 17l1.3-3.7A7 7 0 1 1 17 9.6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
               <path d="M7.6 7.6c0 3 1.8 4.8 4.8 4.8"  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -343,7 +358,12 @@
    desenhado — não existe estado escondido nem FOUC. */
 (function(){
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var marks = document.querySelectorAll('.grifo');
+  // O grifo do rodapé fica de fora: naquela faixa o texto é verde-escuro e
+  // só é legível em cima da tarja amarela, então ela nunca pode ficar em
+  // scaleX(0) esperando um scroll que talvez não aconteça.
+  var marks = [].filter.call(document.querySelectorAll('.grifo'), function(m){
+    return !(m.closest && m.closest('.band--dark'));
+  });
   if (!('IntersectionObserver' in window) || !marks.length) return;
   marks.forEach(function(m){ m.style.setProperty('--sweep','0'); });
   var io = new IntersectionObserver(function(entries){

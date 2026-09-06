@@ -106,7 +106,14 @@ body{
 }
 
 img,svg{ max-width:100%; }
-h1,h2,h3{ margin:0; hyphens:none; text-wrap:balance; }
+/* hyphens:none porque título em português não pode quebrar com hífen
+   ("Carros-séis"). O último recurso é overflow-wrap:anywhere, e tem de ser
+   "anywhere", não "break-word": por especificação só "anywhere" entra no
+   cálculo de min-content. Com "break-word" o grifo (um inline-block) media
+   a palavra inteira, não cabia na coluna e vazava da tela quando o usuário
+   aumentava o texto do navegador; a quebra só acontece quando a palavra
+   realmente não cabe, então nada muda no tamanho normal. */
+h1,h2,h3{ margin:0; hyphens:none; text-wrap:balance; overflow-wrap:anywhere; }
 p{ margin:0; hyphens:auto; -webkit-hyphens:auto; max-width:var(--measure); }
 ul{ margin:0; padding:0; }
 
@@ -115,6 +122,9 @@ ul{ margin:0; padding:0; }
   outline-offset:3px;
   border-radius:var(--r-focus);
 }
+/* <main tabindex="-1"> só existe para receber o foco do link "pular para
+   o conteúdo"; não é um controle, então não desenha anel. */
+[tabindex="-1"]:focus{ outline:none; }
 
 .wrap{ width:var(--wrap); margin-inline:auto; }
 
@@ -128,7 +138,10 @@ ul{ margin:0; padding:0; }
   background:var(--bg); color:var(--ink);
   border-radius:var(--r-chip);
   font:700 var(--step-0)/1 var(--font-display);
-  text-decoration:none; white-space:nowrap;
+  text-decoration:none;
+  /* sem largura travada: com a fonte-base grande do usuário um nowrap de
+     56px de altura passava da tela e alargava o documento */
+  max-width:calc(100% - 2rem);
   box-shadow:0 4px 0 0 var(--yellow), var(--air-1);
   transform:translateY(-160%);
   transition:transform .16s var(--ease);
@@ -152,10 +165,11 @@ h3{ font:700 var(--step-2)/1.12 var(--font-display); letter-spacing:-.02em; max-
 .lead{ font:500 var(--step-1)/1.45 var(--font-display); letter-spacing:-.01em; max-width:32ch; color:var(--ink-2); }
 .micro{ font:400 var(--step--1)/1.5 var(--font-display); color:var(--ink-3); }
 blockquote{ font:500 var(--step-1)/1.45 var(--font-display); letter-spacing:-.01em; max-width:30ch; margin:0; }
-cite{
+.cite{
+  display:block;
   font:700 var(--step--1)/1.4 var(--font-display);
   letter-spacing:.14em; text-transform:uppercase;
-  font-style:normal; color:var(--ink-3);
+  color:var(--ink-3);
 }
 
 /* ============================================================
@@ -182,6 +196,7 @@ cite{
   background:var(--btn-bg); color:var(--btn-ink);
   font:700 var(--step-0)/1 var(--font-display); letter-spacing:-.005em;
   text-decoration:none; text-align:center; cursor:pointer;
+  max-width:100%;
   -webkit-tap-highlight-color:transparent;
   box-shadow: 0 var(--lip) 0 0 var(--lip-color),
               0 10px 18px -12px rgba(16,35,27,.45);
@@ -203,11 +218,10 @@ cite{
 }
 .btn:focus-visible{ outline:3px solid var(--focus); outline-offset:4px; }
 
-.btn__arrow{ width:1em; height:1em; flex:none; }
+.btn__arrow{ width:1em; height:1em; flex:none; transition:transform .16s var(--ease); }
 @media (hover:hover){
   .btn--card:hover .btn__arrow{ transform:translateX(3px); }
 }
-.btn__arrow{ transition:transform .16s var(--ease); }
 
 /* PRIMÁRIO — creme sobre roxo 6,81:1 | preenchimento vs página 6,20:1 */
 .btn--primary{ --btn-bg:var(--purple); --btn-ink:var(--surface); --lip-color:var(--purple-lip); }
@@ -271,10 +285,25 @@ cite{
   transition-delay: calc(var(--i,0) * 90ms);
 }
 .grifo--lilas::before{ background:var(--purple-mark); }  /* tinta sobre ele = 9,19:1 */
-.grifo--sublinha::before{
-  height:.22em; bottom:-.02em;
-  border-radius:.14em .1em .12em .16em / .5em .4em .55em .45em;
+/* O sublinhado marca frases longas, que quebram em duas linhas no
+   celular. Um ::before absoluto sobre um inline-block não consegue
+   acompanhar isso — o inline-block estica para a coluna inteira e o
+   traço vira uma barra solta embaixo da última linha. Aqui o traço é um
+   fundo do próprio texto em linha, com box-decoration-break:clone, então
+   cada pedaço da frase ganha o seu. --sweep continua controlando a
+   animação, agora pela largura do fundo. */
+.grifo--sublinha{
+  display:inline;
+  padding-bottom:.08em;
+  background-image:linear-gradient(var(--yellow),var(--yellow));
+  background-repeat:no-repeat;
+  background-position:0 100%;
+  background-size:calc(var(--sweep,1) * 100%) .22em;
+  box-decoration-break:clone; -webkit-box-decoration-break:clone;
+  transition:background-size .55s cubic-bezier(.22,.9,.28,1);
+  transition-delay:calc(var(--i,0) * 90ms);
 }
+.grifo--sublinha::before{ content:none; }
 /* Dentro da faixa escura a palavra grifada vira tinta (11,50:1 sobre o
    amarelo). Como o fundo também é escuro, o traço precisa cobrir a
    palavra inteira: com a altura normal de marca-texto (.48em) só a
@@ -343,6 +372,14 @@ cite{
 .stat__num{
   display:block; color:var(--ink);                         /* 13,05:1 na areia */
   font:700 var(--step-5)/0.82 var(--font-display);
+  /* Teto contra a largura da tela, além do teto em rem. O piso de
+     --step-5 é 4.5rem e cresce junto com a fonte-base do usuário,
+     enquanto a coluna continua presa à viewport: sem este min() o
+     número mais importante da página é cortado quando alguém aumenta o
+     texto do navegador. Longhand DEPOIS do atalho font: — dentro do
+     atalho, math-function seguida de barra tem histórico de bug de
+     parsing no WebKit, e ali a falha derrubaria a fonte inteira. */
+  font-size:min(var(--step-5), 19vw);
   letter-spacing:-.05em; font-variant-numeric: lining-nums tabular-nums;
   margin-left:-.055em;
 }
@@ -354,20 +391,19 @@ cite{
 .stat__support{ margin-top:1.25rem; color:var(--ink-2); max-width:34ch; }   /* 5,94:1 */
 .stat__mini{
   list-style:none; margin:1.5rem 0 0; padding:0;
-  display:flex; flex-wrap:wrap; gap:.35rem 0;
+  /* Separados por espaço, não por glifo: qualquer "·" — antes ou depois
+     do item — fica pendurado na ponta da linha quando a lista quebra. */
+  display:flex; flex-wrap:wrap; gap:.35rem 1.6rem;
   font:700 var(--step--1)/1.4 var(--font-display);
   letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);        /* 5,06:1 */
 }
-/* O separador vai depois do item, nunca antes: como ::before ele viraria
-   um "·" órfão no começo da linha quando a lista quebra. */
-.stat__mini li:not(:last-child)::after{ content:"·"; margin-inline:.7rem; }
 .stat__quote{ position:relative; padding-left:1.6em; }
 .stat__quote::before{
-  content:"\201C"; position:absolute; left:0; top:-.18em;
+  content:"\201C" / ""; position:absolute; left:0; top:-.18em;
   font:700 3.5em/1 var(--font-display); color:var(--ink);
   opacity:.22; pointer-events:none;
 }
-.stat__quote cite{ display:block; margin-top:1rem; }
+.stat__quote .cite{ margin-top:1rem; }
 
 /* ============================================================
    6. CURSOS E MATERIAIS
@@ -385,8 +421,13 @@ cite{
 @media (min-width:700px){ .cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (min-width:1000px){
   .cards{ grid-template-columns:repeat(6,minmax(0,1fr)); }
-  .card{ grid-column:span 2; }        /* cards 1–3 */
-  .card--wide{ grid-column:span 3; }  /* cards 4–5 → fila de 2, centrada */
+  .card{ grid-column:span 2; }
+  /* A segunda fila tem duas peças. Em vez de alargá-las, empurramos a
+     primeira uma coluna para dentro: a fila fica centrada e os cinco
+     cards ficam com a mesma largura — o que importa porque a arte das
+     capas escala com a caixa, e larguras diferentes fariam a marca do
+     grifo e as espessuras de traço mudarem de tamanho entre as filas. */
+  .cards > li:nth-child(4){ grid-column:2 / span 2; }
 }
 
 .card{
@@ -394,7 +435,6 @@ cite{
   background:var(--surface);
   border:1px solid var(--line-soft);
   border-radius:var(--r-card);
-  overflow:hidden; overflow:clip;
   box-shadow:var(--air-1);
   transition: transform .22s var(--ease), box-shadow .22s var(--ease);
 }
@@ -404,8 +444,14 @@ cite{
 }
 .card:focus-within{ box-shadow:var(--air-2); }
 
+/* O recorte fica na capa, não no card. No card, um overflow:clip também
+   cortaria o título e o botão quando o usuário aumenta o tamanho do
+   texto — e sem barra de rolagem, ou seja, conteúdo perdido. A capa é a
+   única coisa que precisa ser recortada (a arte sangra de propósito). */
 .card__cover{
   position:relative; display:block; aspect-ratio:5/4;
+  border-radius:calc(var(--r-card) - 1px) calc(var(--r-card) - 1px) 0 0;
+  overflow:hidden;
   border-bottom:1px solid var(--line-strong);   /* 3,97:1 sobre a superfície */
   background:var(--cover-bg,var(--surface));
 }
@@ -415,8 +461,15 @@ cite{
   display:flex; flex-direction:column; align-items:flex-start; gap:.7rem;
   padding:clamp(1.5rem,1rem + 1.4vw,2rem); flex:1;
 }
-.card__body h3{ max-width:22ch; }
-.card__desc{ color:var(--ink-2); font-size:var(--step-0); line-height:1.55; max-width:38ch; margin-bottom:.4rem; }
+/* align-items:flex-start dimensiona cada filho pelo próprio max-content, e
+   um teto em ch cresce junto com a fonte. Sem o min(...,100%) o título
+   vazava para fora do card assim que o usuário aumentava o texto. */
+.card__body > *{ max-width:100%; }
+.card__body h3{ max-width:min(22ch,100%); }
+.card__desc{
+  color:var(--ink-2); font-size:var(--step-0); line-height:1.55;
+  max-width:min(38ch,100%); margin-bottom:.4rem;
+}
 .card .btn--card{ margin-top:auto; width:100%; }
 @media (min-width:700px){ .card .btn--card{ width:auto; } }
 
@@ -444,6 +497,7 @@ cite{
   flex:1 1 20rem; min-width:0;
   display:flex; flex-direction:column; gap:1.25rem; align-items:flex-start;
 }
+.rodape__right > *{ max-width:100%; }
 .contatos{ list-style:none; display:flex; flex-wrap:wrap; gap:.75rem; }
 .rodape__bottom{
   flex-basis:100%;
@@ -476,6 +530,24 @@ cite{
   .card{ border:1px solid CanvasText; box-shadow:none; }
   .card__badge{ box-shadow:none; border:1px solid CanvasText; }
   .grifo::before{ display:none; }
+  .grifo--sublinha{ background-image:none; }
+  /* Sem o traço amarelo por trás, a palavra grifada da faixa escura
+     ficaria verde-escuro sobre verde-escuro (1:1) e sumiria. */
+  .band--dark .grifo > span{ color:var(--bg); }
   .bloco{ background:Canvas; color:CanvasText; outline:1px solid CanvasText; }
   .band--dark{ forced-color-adjust:none; }
+}
+
+/* ============================================================
+   9. IMPRESSÃO
+   Na impressão nada rola, então o observador de interseção pode nunca
+   ter disparado para o rodapé. Forçamos todos os grifos desenhados —
+   sem isso a palavra grifada da faixa escura sairia invisível no papel.
+   ============================================================ */
+@media print{
+  .grifo::before{ --sweep:1 !important; transform:rotate(-.7deg) !important; }
+  .grifo--sublinha{ background-size:100% .22em !important; }
+  .skip{ display:none; }
+  .btn{ box-shadow:none; border:1px solid var(--ink); }
+  .card{ box-shadow:none; break-inside:avoid; }
 }
