@@ -1,0 +1,481 @@
+/* ============================================================
+   GABRIEL JUSTE — link bio
+   Direção: GRIFO — Editorial de Marcador
+
+   REGRAS DE COR (não quebrar):
+   1. O amarelo (#FFD429 / #F2B705) é SEMPRE superfície, nunca texto.
+      Por isso não existe uma variável --text-yellow neste arquivo.
+   2. Nunca colocar --ink sobre --purple sólido (2,35:1). O roxo sólido
+      só carrega texto creme; a tinta verde vai sobre os tons --purple-mark.
+   3. A sombra é semântica: "lip" duro sem blur = elemento clicável (.btn).
+      Todo o resto usa as sombras suaves --air-*.
+   ============================================================ */
+
+:root{
+  color-scheme: only light;
+
+  /* --- superfícies --- */
+  --bg:              #F7F1E4;   /* papel quente, fundo da página */
+  --bg-alt:          #EFE4D0;   /* areia quente, faixa +2.500     */
+  --surface:         #FFFCF5;   /* card / superfície interna      */
+
+  /* --- tinta --- */
+  --ink:             #10231B;   /* títulos + corpo                */
+  --ink-2:           #3E5B4C;   /* texto secundário               */
+  --ink-3:           #4A6558;   /* kickers, micro-linhas          */
+  --cream-2:         #C3C7BA;   /* texto suave na faixa escura    */
+
+  /* --- acentos --- */
+  --purple:          #6B21E8;
+  --purple-deep:     #5A16C9;
+  --purple-lip:      #3B0E93;
+  --purple-mark:     #C9B9F5;   /* grifo lilás, seguro para tinta */
+  --purple-mark-lo:  #E4DAFB;   /* painéis das capas              */
+  --yellow:          #FFD429;
+  --yellow-deep:     #F2B705;
+  --amber:           #A87400;   /* lip + borda do amarelo         */
+
+  /* --- linhas --- */
+  --line-soft:   rgba(16,35,27,.12);  /* decorativa               */
+  --line-strong: #6D7F6E;             /* fio com contraste 3:1    */
+
+  /* --- foco (trocado por superfície) --- */
+  --focus: #5A16C9;
+
+  /* --- tipografia --- */
+  --font-display: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN",
+    "Varela Round", "Nunito", "Quicksand", "Arial Rounded MT Bold",
+    "Segoe UI Variable Display", "Segoe UI", "Trebuchet MS",
+    system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --step--1: clamp(0.8125rem, 0.7917rem + 0.093vw, 0.875rem); /* 13→14  */
+  --step-0:  clamp(1.0625rem, 1rem + 0.278vw, 1.25rem);       /* 17→20  */
+  --step-1:  clamp(1.25rem, 1.125rem + 0.556vw, 1.625rem);    /* 20→26  */
+  --step-2:  clamp(1.5rem, 1.2917rem + 0.926vw, 2.125rem);    /* 24→34  */
+  --step-3:  clamp(2rem, 1.5rem + 2.222vw, 3.5rem);           /* 32→56  */
+  --step-4:  clamp(2.75rem, 1.6667rem + 4.815vw, 6rem);       /* 44→96  */
+  --step-5:  clamp(4.5rem, 3.1667rem + 5.926vw, 8.5rem);      /* 72→136 */
+
+  /* --- espaço --- */
+  --section-y: clamp(4rem, 2.2rem + 8vw, 8.5rem);
+  --wrap: min(100% - 2.5rem, 68rem);
+  --measure: 34rem;
+
+  /* --- raios --- */
+  --r-card: 28px;
+  --r-chip: 999px;
+  --r-focus: 6px;
+
+  /* --- sombras suaves "air" (nunca em elementos clicáveis) --- */
+  --air-1: 0 1px 2px rgba(16,35,27,.05), 0 14px 30px -16px rgba(16,35,27,.30);
+  --air-2: 0 2px 4px rgba(16,35,27,.06), 0 26px 48px -20px rgba(16,35,27,.36);
+
+  --ease: cubic-bezier(.2,.8,.3,1);
+}
+
+/* A página é um design claro e quente, assumido. Reafirmamos cada token
+   sob preferência escura para que nenhum modo automático do navegador
+   repinte a paleta em tons frios. */
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#F7F1E4; --bg-alt:#EFE4D0; --surface:#FFFCF5;
+    --ink:#10231B; --ink-2:#3E5B4C; --ink-3:#4A6558; --cream-2:#C3C7BA;
+    --purple:#6B21E8; --purple-deep:#5A16C9; --purple-lip:#3B0E93;
+    --purple-mark:#C9B9F5; --purple-mark-lo:#E4DAFB;
+    --yellow:#FFD429; --yellow-deep:#F2B705; --amber:#A87400;
+    --line-soft:rgba(16,35,27,.12); --line-strong:#6D7F6E; --focus:#5A16C9;
+  }
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:400 var(--step-0)/1.62 var(--font-display);
+  font-synthesis: weight;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:clip;
+}
+
+img,svg{ max-width:100%; }
+h1,h2,h3{ margin:0; hyphens:none; text-wrap:balance; }
+p{ margin:0; hyphens:auto; -webkit-hyphens:auto; max-width:var(--measure); }
+ul{ margin:0; padding:0; }
+
+:focus-visible{
+  outline:3px solid var(--focus);
+  outline-offset:3px;
+  border-radius:var(--r-focus);
+}
+
+.wrap{ width:var(--wrap); margin-inline:auto; }
+
+/* Fora da tela por transform, nunca por left:-9999px — um deslocamento
+   negativo entra no scrollWidth do documento e cria rolagem horizontal
+   fantasma no celular. */
+.skip{
+  position:absolute; left:0; top:0; z-index:999;
+  display:inline-flex; align-items:center;
+  min-height:56px; padding:0 1.5rem; margin:1rem;
+  background:var(--bg); color:var(--ink);
+  border-radius:var(--r-chip);
+  font:700 var(--step-0)/1 var(--font-display);
+  text-decoration:none; white-space:nowrap;
+  box-shadow:0 4px 0 0 var(--yellow), var(--air-1);
+  transform:translateY(-160%);
+  transition:transform .16s var(--ease);
+}
+.skip:focus{ transform:translateY(0); }
+
+/* ============================================================
+   TIPOGRAFIA POR PAPEL
+   Uma única família. Os papéis se separam por escala, peso e
+   entreletra — nunca por um segundo tipo.
+   ============================================================ */
+.kicker{
+  font:700 var(--step--1)/1.2 var(--font-display);
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-3); margin:0;
+}
+.wordmark{ font:700 var(--step-1)/1 var(--font-display); letter-spacing:.005em; }
+h1{ font:700 var(--step-4)/0.96 var(--font-display); letter-spacing:-.035em; max-width:13ch; }
+h2{ font:700 var(--step-3)/1.04 var(--font-display); letter-spacing:-.03em; max-width:18ch; }
+h3{ font:700 var(--step-2)/1.12 var(--font-display); letter-spacing:-.02em; max-width:20ch; }
+.lead{ font:500 var(--step-1)/1.45 var(--font-display); letter-spacing:-.01em; max-width:32ch; color:var(--ink-2); }
+.micro{ font:400 var(--step--1)/1.5 var(--font-display); color:var(--ink-3); }
+blockquote{ font:500 var(--step-1)/1.45 var(--font-display); letter-spacing:-.01em; max-width:30ch; margin:0; }
+cite{
+  font:700 var(--step--1)/1.4 var(--font-display);
+  letter-spacing:.14em; text-transform:uppercase;
+  font-style:normal; color:var(--ink-3);
+}
+
+/* ============================================================
+   1. BOTÕES — pílula, "lip" duro sem blur, com curso de pressão real
+   Escolhemos a sombra dura deslocada em vez da elevação difusa:
+   (a) uma sombra cinza borrada sobre o creme #F7F1E4 vira névoa e
+       deixa o papel quente encardido; o lip sólido mantém o fundo
+       limpo até a borda da pílula;
+   (b) o lip dá uma pressão física 1:1 — o botão anda exatamente a
+       altura do próprio lip e encosta no papel, o que se sente no
+       celular, onde está a maior parte do tráfego;
+   (c) é linguagem de impressão/adesivo, a mesma dos grifos.
+   ============================================================ */
+.btn{
+  --lip: 6px;
+  --lip-hover: 9px;
+  --lip-color: var(--purple-lip);
+  --btn-bg: var(--purple);
+  --btn-ink: var(--surface);
+
+  display:inline-flex; align-items:center; justify-content:center; gap:.55em;
+  min-height:56px; padding:1rem 2rem;
+  border:0; border-radius:var(--r-chip);
+  background:var(--btn-bg); color:var(--btn-ink);
+  font:700 var(--step-0)/1 var(--font-display); letter-spacing:-.005em;
+  text-decoration:none; text-align:center; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow: 0 var(--lip) 0 0 var(--lip-color),
+              0 10px 18px -12px rgba(16,35,27,.45);
+  transform: translateY(0);
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease),
+              background-color .16s linear;
+}
+@media (hover:hover){
+  .btn:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 var(--lip-hover) 0 0 var(--lip-color),
+                0 16px 24px -14px rgba(16,35,27,.5);
+  }
+}
+.btn:active{
+  transform: translateY(var(--lip));
+  box-shadow: 0 0 0 0 var(--lip-color), 0 2px 4px -3px rgba(16,35,27,.5);
+  transition-duration:.07s;
+}
+.btn:focus-visible{ outline:3px solid var(--focus); outline-offset:4px; }
+
+.btn__arrow{ width:1em; height:1em; flex:none; }
+@media (hover:hover){
+  .btn--card:hover .btn__arrow{ transform:translateX(3px); }
+}
+.btn__arrow{ transition:transform .16s var(--ease); }
+
+/* PRIMÁRIO — creme sobre roxo 6,81:1 | preenchimento vs página 6,20:1 */
+.btn--primary{ --btn-bg:var(--purple); --btn-ink:var(--surface); --lip-color:var(--purple-lip); }
+@media (hover:hover){ .btn--primary:hover{ --btn-bg:var(--purple-deep); } } /* 8,56:1 */
+
+/* SECUNDÁRIO — tinta sobre amarelo 11,50:1. O amarelo tem só 1,27:1
+   contra a página, então esta é a única variante com borda: 2px de
+   --amber dão um limite de 3,61:1 em todo o contorno (WCAG 1.4.11). */
+.btn--secondary{
+  --btn-bg:var(--yellow); --btn-ink:var(--ink); --lip-color:var(--amber);
+  border:2px solid var(--amber); padding:calc(1rem - 2px) calc(2rem - 2px);
+}
+@media (hover:hover){ .btn--secondary:hover{ --btn-bg:var(--yellow-deep); } } /* 9,04:1 */
+
+/* CARD — a pílula de tinta com o lip amarelo. Essa faixa amarela sob
+   os cinco CTAs é a listra que o olho encontra ao descer a grade. */
+.btn--card{
+  --btn-bg:var(--ink); --btn-ink:var(--surface); --lip-color:var(--yellow);
+  --lip:4px; --lip-hover:6px;
+  min-height:52px; padding:.875rem 1.5rem;
+}
+
+/* CREME — sobre a faixa escura do rodapé. */
+.btn--cream{
+  --btn-bg:var(--bg); --btn-ink:var(--ink); --lip-color:var(--yellow);
+  --lip:5px; --lip-hover:8px;
+  min-height:52px; padding:.875rem 1.35rem;
+  font-size:var(--step--1); letter-spacing:.02em;
+}
+
+/* LINK DE TEXTO — o terceiro caminho, não é pílula. Alvo de 44px. */
+.link-t{
+  display:inline-flex; align-items:center; gap:.4em;
+  min-height:44px; padding:.25rem 0;
+  font:700 var(--step-0)/1 var(--font-display); color:var(--ink);
+  text-decoration:underline; text-decoration-thickness:2px;
+  text-underline-offset:.3em; text-decoration-color:var(--line-strong);
+  transition:text-decoration-color .16s linear;
+}
+@media (hover:hover){ .link-t:hover{ text-decoration-color:var(--purple); } }
+.link-t:focus-visible{ outline:3px solid var(--focus); outline-offset:4px; border-radius:var(--r-focus); }
+
+@media (max-width:559px){ .cta-row .btn{ width:100%; } }
+
+/* ============================================================
+   2. O GRIFO — a assinatura da página
+   MARCAÇÃO OBRIGATÓRIA: <span class="grifo"><span>palavra</span></span>
+   O span interno não é opcional: sem ele o traço cobre o texto.
+   --sweep vale 1 por padrão, então sem JS o grifo já aparece desenhado.
+   ============================================================ */
+.grifo{ position:relative; display:inline-block; }
+.grifo > span{ position:relative; z-index:1; }
+.grifo::before{
+  content:""; position:absolute; z-index:0;
+  left:-.14em; right:-.14em; bottom:.04em; height:.48em;
+  background:var(--yellow);
+  border-radius:.34em .26em .3em .38em / .55em .42em .6em .45em;
+  transform: rotate(-.7deg) scaleX(var(--sweep,1));
+  transform-origin:left center;
+  transition: transform .55s cubic-bezier(.22,.9,.28,1);
+  transition-delay: calc(var(--i,0) * 90ms);
+}
+.grifo--lilas::before{ background:var(--purple-mark); }  /* tinta sobre ele = 9,19:1 */
+.grifo--sublinha::before{
+  height:.22em; bottom:-.02em;
+  border-radius:.14em .1em .12em .16em / .5em .4em .55em .45em;
+}
+/* Dentro da faixa escura a palavra grifada vira tinta (11,50:1 sobre o
+   amarelo). Como o fundo também é escuro, o traço precisa cobrir a
+   palavra inteira: com a altura normal de marca-texto (.48em) só a
+   metade de baixo ficaria sobre o amarelo e o topo das letras sumiria
+   contra o verde escuro. Aqui o grifo vira uma tarja cheia. */
+.band--dark .grifo > span{ color:var(--ink); }
+.band--dark .grifo::before{
+  height:1.14em; bottom:-.15em; left:-.2em; right:-.2em;
+}
+
+/* bloco roxo sólido: só texto creme — tinta sobre roxo é 2,35:1 */
+.bloco{
+  background:var(--purple); color:var(--surface);       /* 6,81:1 */
+  padding:.02em .18em .09em; border-radius:.16em;
+  box-decoration-break:clone; -webkit-box-decoration-break:clone;
+}
+
+/* ============================================================
+   3. TOPO
+   ============================================================ */
+.topo{ padding-block: clamp(1.5rem,1rem + 1.6vw,2.5rem) 0; }
+.logo{
+  display:inline-flex; align-items:center; gap:.65rem;
+  min-height:44px; text-decoration:none; color:var(--ink);
+}
+.logo__mark{ flex:none; }
+.topo .kicker{ margin-top:.4rem; margin-left:calc(40px + .65rem); }
+
+/* ============================================================
+   4. HERO
+   ============================================================ */
+.hero{ padding-block: clamp(2.5rem,1.5rem + 3vw,4.5rem) var(--section-y); }
+/* A medida de leitura continua nos próprios parágrafos (--measure, 32ch,
+   46ch). A coluna é um pouco mais larga só para os dois botões caberem
+   lado a lado no desktop — presos a 34rem eles quebravam em duas linhas. */
+.hero .col{ max-width:40rem; }
+.hero .lead{ margin-top:1.25rem; }
+.instrucao{ margin-top:1.5rem; color:var(--ink); max-width:46ch; }
+.cta-row{ display:flex; flex-wrap:wrap; gap:1rem; margin-top:2rem; }
+@media (max-width:559px){ .cta-row{ gap:.75rem; } }
+.hero .micro{ margin-top:1.25rem; }
+.hero .link-t{ margin-top:1.5rem; }
+
+/* ============================================================
+   5. FAIXAS + BLOCO DE PROVA SOCIAL (+2.500)
+   ============================================================ */
+.band{ padding-block: var(--section-y); }
+.band--sand{ background:var(--bg-alt); padding-bottom:0; }
+.band--sand > .wrap{ padding-bottom:var(--section-y); border-bottom:1px solid var(--line-soft); }
+.band--dark{ background:var(--ink); color:var(--bg); --focus:var(--yellow); } /* 14,60:1 */
+.band--dark p{ color:var(--cream-2); }                                        /* 9,54:1 */
+
+.stat{
+  display:grid; gap:clamp(2rem,1rem + 3vw,3.5rem);
+  grid-template-columns:1fr; align-items:start;
+  margin-top:1.25rem;
+}
+@media (min-width:900px){
+  .stat{
+    grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    gap:clamp(2rem,1rem + 4vw,4rem);
+  }
+}
+.stat > *{ min-width:0; }
+.stat__head{ margin:0; max-width:none; }
+.stat__num{
+  display:block; color:var(--ink);                         /* 13,05:1 na areia */
+  font:700 var(--step-5)/0.82 var(--font-display);
+  letter-spacing:-.05em; font-variant-numeric: lining-nums tabular-nums;
+  margin-left:-.055em;
+}
+.stat__word{
+  display:inline-block; margin-top:.15em;
+  font:700 var(--step-3)/1.04 var(--font-display);
+  letter-spacing:-.03em; color:var(--ink);
+}
+.stat__support{ margin-top:1.25rem; color:var(--ink-2); max-width:34ch; }   /* 5,94:1 */
+.stat__mini{
+  list-style:none; margin:1.5rem 0 0; padding:0;
+  display:flex; flex-wrap:wrap; gap:.35rem 0;
+  font:700 var(--step--1)/1.4 var(--font-display);
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);        /* 5,06:1 */
+}
+/* O separador vai depois do item, nunca antes: como ::before ele viraria
+   um "·" órfão no começo da linha quando a lista quebra. */
+.stat__mini li:not(:last-child)::after{ content:"·"; margin-inline:.7rem; }
+.stat__quote{ position:relative; padding-left:1.6em; }
+.stat__quote::before{
+  content:"\201C"; position:absolute; left:0; top:-.18em;
+  font:700 3.5em/1 var(--font-display); color:var(--ink);
+  opacity:.22; pointer-events:none;
+}
+.stat__quote cite{ display:block; margin-top:1rem; }
+
+/* ============================================================
+   6. CURSOS E MATERIAIS
+   ============================================================ */
+.cursos{ padding-block: var(--section-y); }
+.cursos h2{ margin-top:.75rem; }
+.cursos__sub{ margin-top:1rem; color:var(--ink-2); max-width:52ch; }
+
+.cards{
+  list-style:none; margin:clamp(2.5rem,1.5rem + 3vw,3.5rem) 0 0; padding:0;
+  display:grid; gap:clamp(1.25rem,.6rem + 2.6vw,2.25rem);
+  grid-template-columns:1fr;
+}
+.cards > *{ min-width:0; }
+@media (min-width:700px){ .cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:1000px){
+  .cards{ grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .card{ grid-column:span 2; }        /* cards 1–3 */
+  .card--wide{ grid-column:span 3; }  /* cards 4–5 → fila de 2, centrada */
+}
+
+.card{
+  position:relative; display:flex; flex-direction:column;
+  background:var(--surface);
+  border:1px solid var(--line-soft);
+  border-radius:var(--r-card);
+  overflow:hidden; overflow:clip;
+  box-shadow:var(--air-1);
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+}
+.card > article{ display:flex; flex-direction:column; flex:1; }
+@media (hover:hover){
+  .card:hover{ transform:translateY(-4px); box-shadow:var(--air-2); }
+}
+.card:focus-within{ box-shadow:var(--air-2); }
+
+.card__cover{
+  position:relative; display:block; aspect-ratio:5/4;
+  border-bottom:1px solid var(--line-strong);   /* 3,97:1 sobre a superfície */
+  background:var(--cover-bg,var(--surface));
+}
+.card__cover > svg{ display:block; width:100%; height:100%; }
+
+.card__body{
+  display:flex; flex-direction:column; align-items:flex-start; gap:.7rem;
+  padding:clamp(1.5rem,1rem + 1.4vw,2rem); flex:1;
+}
+.card__body h3{ max-width:22ch; }
+.card__desc{ color:var(--ink-2); font-size:var(--step-0); line-height:1.55; max-width:38ch; margin-bottom:.4rem; }
+.card .btn--card{ margin-top:auto; width:100%; }
+@media (min-width:700px){ .card .btn--card{ width:auto; } }
+
+/* O selo "MAIS VENDIDO" é o único corte-beijo da página: um anel creme
+   de 3px entre o preenchimento amarelo e a capa roxa, que dá ao selo um
+   limite de 6,81:1. Não é clicável, então não recebe lip. */
+.card__badge{
+  position:absolute; top:14px; left:14px; z-index:2;
+  display:inline-block; padding:.42em .85em;
+  background:var(--yellow); color:var(--ink);          /* 11,50:1 */
+  border-radius:var(--r-chip);
+  font:700 var(--step--1)/1 var(--font-display);
+  letter-spacing:.14em; text-transform:uppercase;
+  box-shadow:0 0 0 3px var(--surface);
+}
+
+/* ============================================================
+   7. RODAPÉ
+   ============================================================ */
+.rodape__grid{ display:flex; flex-wrap:wrap; gap:clamp(2rem,1rem + 4vw,4rem); }
+.rodape__left{ flex:1 1 22rem; min-width:0; }
+.rodape__left h2{ color:var(--bg); }
+.rodape__left p{ margin-top:1rem; max-width:34ch; }
+.rodape__right{
+  flex:1 1 20rem; min-width:0;
+  display:flex; flex-direction:column; gap:1.25rem; align-items:flex-start;
+}
+.contatos{ list-style:none; display:flex; flex-wrap:wrap; gap:.75rem; }
+.rodape__bottom{
+  flex-basis:100%;
+  display:flex; flex-wrap:wrap; align-items:center;
+  justify-content:space-between; gap:1rem;
+  margin-top:clamp(2.5rem,4vw,4rem);
+  padding-top:1.5rem;
+  border-top:1px solid rgba(247,241,228,.16);
+}
+.rodape__bottom .wordmark{ font-size:var(--step-0); color:var(--bg); }
+.rodape__bottom .micro{ color:var(--cream-2); margin:0; }
+
+/* ============================================================
+   8. MOVIMENTO REDUZIDO + CORES FORÇADAS
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; transition-delay:0ms !important;
+  }
+  .grifo::before{ --sweep:1 !important; }
+  .btn:hover,.card:hover{ transform:none; }
+  /* o estado de pressão sobrevive como um lip encolhido: saber que o
+     toque foi registrado é informação, não decoração */
+  .btn:active{ transform:none; box-shadow:0 2px 0 0 var(--lip-color); }
+}
+@media (forced-colors: active){
+  .btn{ border:2px solid ButtonText; box-shadow:none; }
+  .card{ border:1px solid CanvasText; box-shadow:none; }
+  .card__badge{ box-shadow:none; border:1px solid CanvasText; }
+  .grifo::before{ display:none; }
+  .bloco{ background:Canvas; color:CanvasText; outline:1px solid CanvasText; }
+  .band--dark{ forced-color-adjust:none; }
+}
