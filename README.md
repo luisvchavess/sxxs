@@ -136,3 +136,30 @@ Medidas em Chromium, contra os arquivos como estão:
 - Sem JS, e com movimento reduzido: a página renderiza completa.
 - Os 13 pontos de tabulação são alcançáveis e todos têm anel de foco; o link
   "pular para o conteúdo" aparece e move o foco de verdade.
+
+---
+
+# Cápsula do Tempo — `capsula/`
+
+Um app que sela mensagens com **criptografia de trava de tempo**: quem recebe
+só consegue ler depois de deixar o aparelho calculando pelo tempo escolhido
+(30 s, 1 hora, 1 semana…). Sem servidor, sem senha, sem relógio que possa ser
+adiantado.
+
+Abra `capsula/index.html` (ou `http://localhost:8000/capsula/`).
+
+**Como funciona** (quebra-cabeça de Rivest–Shamir–Wagner, 1996):
+
+1. Ao selar, o navegador sorteia dois primos de 1024 bits `p`, `q`, publica só
+   `N = p·q` e, usando `φ(N)`, calcula `2^(2^T) mod N` pelo atalho em ~1 s.
+   `SHA-256` desse número vira a chave AES-256-GCM da mensagem. Os primos são
+   descartados.
+2. Quem abre não tem o atalho: precisa fazer `x ← x² mod N` **T vezes em
+   sequência**. Cada passo depende do anterior, então paralelizar não ajuda.
+3. `T` é calibrado pela velocidade do aparelho de quem sela (≈150–250 mil
+   quadraturas de 2048 bits por segundo num notebook).
+
+Detalhes: o cálculo roda num Web Worker, o progresso é salvo no
+`localStorage` a cada ~200 ms (pode pausar ou fechar a aba), e a cápsula
+inteira cabe num código de texto `CAPSULA1.…` — ou num link `…/capsula/#CAPSULA1.…`.
+Tem uma cápsula de exemplo de ~15 s embutida para ver o processo.

@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cápsula do Tempo</title>
+<meta name="description" content="Sele uma mensagem que só pode ser aberta depois de um tempo de cálculo. Sem servidor, sem senha, sem relógio: só matemática.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --bg: #E9ECE6;
+  --surface: #F6F7F3;
+  --surface-2: #DFE4DC;
+  --ink: #152120;
+  --muted: #56655F;
+  --line: #C6CFC7;
+  --brass: #8F5A17;
+  --brass-bright: #B8792A;
+  --brass-soft: #EBD9B5;
+  --patina: #2B665C;
+  --patina-soft: #CFE2DC;
+  --danger: #A2352A;
+  --dial-track: #CBD3CB;
+  --shadow: 0 1px 0 rgba(21,33,32,.04), 0 12px 32px -18px rgba(21,33,32,.35);
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0B1312;
+    --surface: #111C1A;
+    --surface-2: #182623;
+    --ink: #E3E9E2;
+    --muted: #93A39D;
+    --line: #253531;
+    --brass: #DDA956;
+    --brass-bright: #E9BA6C;
+    --brass-soft: #3A2D17;
+    --patina: #74B8AA;
+    --patina-soft: #16312C;
+    --danger: #E7836F;
+    --dial-track: #22322E;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 18px 40px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1312;
+  --surface: #111C1A;
+  --surface-2: #182623;
+  --ink: #E3E9E2;
+  --muted: #93A39D;
+  --line: #253531;
+  --brass: #DDA956;
+  --brass-bright: #E9BA6C;
+  --brass-soft: #3A2D17;
+  --patina: #74B8AA;
+  --patina-soft: #16312C;
+  --danger: #E7836F;
+  --dial-track: #22322E;
+  --shadow: 0 1px 0 rgba(0,0,0,.2), 0 18px 40px -20px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.55 var(--body);
+  padding-inline: 20px;
+  padding-block: 0 64px;
+}
+[hidden] { display: none !important; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+
+.wrap { max-width: 1120px; margin-inline: auto; }
+
+/* ---------- masthead ---------- */
+.mast {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-block: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; font: 700 18px/1 var(--display); letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.mast-note { font: 400 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .02em; text-align: right; }
+
+/* ---------- hero ---------- */
+.hero {
+  display: grid; gap: 40px;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: 56px 40px;
+  align-items: start;
+}
+.eyebrow {
+  font: 500 12px/1 var(--mono); text-transform: uppercase; letter-spacing: .14em;
+  color: var(--patina); margin: 0 0 18px;
+}
+h1 {
+  font: 800 clamp(40px, 6.4vw, 76px)/.95 var(--display);
+  letter-spacing: -.035em; margin: 0 0 24px; text-wrap: balance; max-width: 13ch;
+}
+h1 em { font-style: normal; color: var(--brass); }
+.hero-text { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 40px; align-items: start; }
+.lede { font-size: 18px; max-width: 34em; margin: 0 0 14px; color: var(--ink); }
+.lede-sub { max-width: 36em; margin: 0; color: var(--muted); }
+.formula {
+  display: inline-flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline;
+  margin-top: 28px; padding: 12px 16px;
+  font: 500 15px/1.4 var(--mono); color: var(--ink);
+  background: var(--surface-2); border-radius: 6px;
+}
+.formula span { color: var(--muted); font-weight: 400; font-size: 13px; }
+
+/* ---------- dial ---------- */
+.dial-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 22px; box-shadow: var(--shadow);
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px);
+}
+.dial-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.dial-title { font: 700 15px/1.2 var(--display); margin: 0; }
+.chip {
+  font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .1em;
+  padding: 5px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted);
+  white-space: nowrap;
+}
+.chip[data-state="work"] { background: var(--brass-soft); color: var(--brass); }
+.chip[data-state="done"] { background: var(--patina-soft); color: var(--patina); }
+.dial {
+  position: relative; width: 100%; max-width: 340px; aspect-ratio: 1; margin: 6px auto 4px;
+}
+.dial canvas { width: 100%; height: 100%; display: block; }
+.dial-center {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 4px;
+  pointer-events: none;
+}
+.dial-big { font: 700 clamp(30px, 5vw, 40px)/1 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.dial-small { font: 400 12px/1.35 var(--mono); color: var(--muted); white-space: pre-line; font-variant-numeric: tabular-nums; }
+.stats {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  margin-top: 14px;
+}
+.stat { background: var(--surface); padding: 10px 12px; min-width: 0; }
+.stat dt { font: 500 10.5px/1 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+.stat dd { margin: 0; font: 500 14px/1.2 var(--mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.dial-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.dial-note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+
+/* ---------- buttons ---------- */
+.btn {
+  appearance: none; border: 1px solid transparent; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 18px; border-radius: 8px;
+  font: 600 15px/1.1 var(--body);
+  transition: transform .12s ease, background-color .15s ease, border-color .15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--brass); }
+.btn-ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+.btn-wide { flex: 1 1 auto; }
+
+/* ---------- workbench ---------- */
+.bench { display: grid; gap: 40px; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: start; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 26px; }
+.tab {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  padding: 12px 4px; margin-right: 22px; margin-bottom: -1px;
+  font: 700 20px/1 var(--display); letter-spacing: -.01em; color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brass); }
+.tab:hover { color: var(--ink); }
+
+.panel { display: grid; gap: 22px; }
+.field { display: grid; gap: 8px; }
+.label { font: 600 14px/1.2 var(--body); }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.input, .textarea, .select {
+  width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: 11px 13px; transition: border-color .15s ease;
+}
+.input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--brass-bright); box-shadow: 0 0 0 3px var(--brass-soft); }
+.textarea { min-height: 150px; resize: vertical; line-height: 1.55; }
+.textarea.code { min-height: 110px; font: 400 12.5px/1.45 var(--mono); word-break: break-all; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.preset {
+  appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 99px; padding: 8px 14px; font: 500 14px/1 var(--body);
+}
+.preset:hover { border-color: var(--ink); }
+.preset[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.custom { display: flex; gap: 8px; flex-wrap: wrap; }
+.custom .input { width: 110px; flex: none; font-family: var(--mono); }
+.custom .select { width: auto; flex: none; }
+.cost {
+  font: 400 13px/1.5 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums;
+  padding: 10px 12px; border-left: 2px solid var(--brass-bright); background: var(--surface-2); border-radius: 0 6px 6px 0;
+}
+.cost b { color: var(--ink); font-weight: 500; }
+
+.result {
+  display: grid; gap: 14px; padding: 20px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.result h3 { margin: 0; font: 700 20px/1.2 var(--display); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toast { font: 500 13px/1 var(--mono); color: var(--patina); }
+.error { color: var(--danger); font-size: 14px; margin: 0; }
+
+.capsule-meta { display: grid; gap: 4px; padding: 16px 18px; border-radius: 10px; background: var(--surface-2); }
+.capsule-meta .to { font: 700 20px/1.2 var(--display); }
+.capsule-meta .when { font: 400 13px/1.4 var(--mono); color: var(--muted); }
+
+/* ---------- letter / reveal ---------- */
+.letter {
+  position: relative; padding: 32px 28px 28px; border-radius: 4px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+  animation: rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.letter-seal {
+  position: absolute; top: -22px; right: 22px; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, var(--brass-bright), var(--brass) 70%);
+  color: var(--surface); font: 800 20px/1 var(--display);
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.4);
+  animation: crack .9s .15s ease both;
+}
+.letter-from { font: 500 12px/1 var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0 0 14px; }
+.letter-body { font: 400 19px/1.6 var(--body); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; max-width: 60ch; }
+.letter-foot { margin: 18px 0 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
+@keyframes rise { from { opacity: .001; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes crack {
+  0% { transform: scale(1) rotate(0); }
+  35% { transform: scale(1.18) rotate(-8deg); }
+  100% { transform: scale(1) rotate(14deg); }
+}
+
+/* ---------- how ---------- */
+.how { margin-top: 80px; padding-top: 36px; border-top: 1px solid var(--line); }
+.how h2 { font: 800 clamp(28px, 3.6vw, 40px)/1.05 var(--display); letter-spacing: -.025em; margin: 0 0 28px; max-width: 20ch; text-wrap: balance; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px; list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; gap: 8px; align-content: start; }
+.steps li::before { content: "0" counter(s); font: 500 13px/1 var(--mono); color: var(--brass); }
+.steps h3 { margin: 0; font: 700 19px/1.2 var(--display); }
+.steps p { margin: 0; color: var(--muted); font-size: 15px; }
+.steps code { font: 500 13px/1 var(--mono); color: var(--ink); background: var(--surface-2); padding: 2px 5px; border-radius: 4px; }
+.fine { margin-top: 36px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px 40px; }
+.fine p { margin: 0; font-size: 14px; color: var(--muted); max-width: 60ch; }
+.fine b { color: var(--ink); font-weight: 600; }
+
+@media (max-width: 880px) {
+  .hero, .bench, .hero-text { grid-template-columns: minmax(0,1fr); }
+  .hero { padding-block: 36px 28px; gap: 28px; }
+  .dial-card { position: static; }
+  .bench .dial-col { order: -1; }
+  .steps, .fine { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 460px) {
+  body { padding-inline: 16px; }
+  .mast-note { display: none; }
+  .tab { font-size: 18px; margin-right: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2.2"/>
+        <path d="M16 16 L16 5 A11 11 0 0 1 25.5 21.5 Z" fill="var(--brass)"/>
+        <circle cx="16" cy="16" r="2.4" fill="currentColor"/>
+      </svg>
+      Cápsula
+    </div>
+    <div class="mast-note">x ← x² mod N · sem servidor</div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Criptografia com trava de tempo</p>
+      <h1>Uma mensagem que só o <em>tempo</em> consegue abrir.</h1>
+      <div class="hero-text">
+      <p class="lede">Escreva algo, escolha quanto tempo deve levar para abrir e envie o código. Quem receber precisa deixar o aparelho calculando por esse tempo. Não existe atalho, senha ou pessoa que possa liberar antes.</p>
+      <p class="lede-sub">Nada passa por servidor. A chave da mensagem é o resultado de milhões de quadraturas em sequência, e cada uma depende da anterior. Mais processadores não ajudam: o trabalho não se divide.</p>
+      </div>
+      <div class="formula">chave = SHA-256( 2^(2^T) mod N ) <span>T quadraturas, uma de cada vez</span></div>
+    </div>
+  </section>
+
+  <section class="bench">
+    <div>
+      <div class="tabs" role="tablist" aria-label="Modo">
+        <button class="tab" role="tab" id="tab-seal" aria-controls="panel-seal" aria-selected="true">Selar</button>
+        <button class="tab" role="tab" id="tab-open" aria-controls="panel-open" aria-selected="false">Abrir</button>
+      </div>
+
+      <!-- SELAR -->
+      <form class="panel" id="panel-seal" role="tabpanel" aria-labelledby="tab-seal" novalidate>
+        <div class="field">
+          <label class="label" for="to">Etiqueta pública <span class="hint" style="display:inline">(opcional, fica visível antes de abrir)</span></label>
+          <input class="input" id="to" maxlength="80" value="Para você, daqui a um tempo">
+        </div>
+        <div class="field">
+          <label class="label" for="msg">Mensagem secreta</label>
+          <textarea class="textarea" id="msg" maxlength="20000">Se você está lendo isto, seu aparelho acabou de fazer milhões de contas seguidas só para chegar aqui.
+
+Ninguém podia abrir antes. Nem eu.</textarea>
+        </div>
+        <div class="field">
+          <span class="label" id="durLabel">Tempo de abertura</span>
+          <div class="presets" role="group" aria-labelledby="durLabel" id="presets">
+            <button type="button" class="preset" data-s="30">30 s</button>
+            <button type="button" class="preset" data-s="300" aria-pressed="true">5 min</button>
+            <button type="button" class="preset" data-s="3600">1 hora</button>
+            <button type="button" class="preset" data-s="86400">1 dia</button>
+            <button type="button" class="preset" data-s="604800">1 semana</button>
+          </div>
+          <div class="custom">
+            <label class="hint" for="customN" style="align-self:center">ou</label>
+            <input class="input" id="customN" type="number" min="1" step="1" inputmode="numeric" placeholder="ex.: 45" aria-label="Quantidade personalizada">
+            <select class="select" id="customU" aria-label="Unidade">
+              <option value="60">minutos</option>
+              <option value="3600">horas</option>
+              <option value="86400">dias</option>
+            </select>
+          </div>
+          <div class="cost" id="cost" aria-live="polite">Medindo a velocidade deste aparelho…</div>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" type="submit" id="sealBtn">Selar cápsula</button>
+          <span class="hint" id="sealStatus"></span>
+        </div>
+
+        <div class="result" id="sealResult" hidden>
+          <h3>Cápsula selada</h3>
+          <p class="hint">Envie este código para quem vai abrir. Ele contém a mensagem cifrada e o enigma, nada mais. Você não precisa guardar nada.</p>
+          <textarea class="textarea code" id="codeOut" readonly aria-label="Código da cápsula"></textarea>
+          <div class="row">
+            <button class="btn btn-primary" type="button" id="copyCode">Copiar código</button>
+            <button class="btn btn-ghost" type="button" id="copyLink" hidden>Copiar link</button>
+            <button class="btn btn-ghost" type="button" id="tryIt">Abrir aqui para testar</button>
+            <span class="toast" id="copyToast" aria-live="polite"></span>
+          </div>
+        </div>
+      </form>
+
+      <!-- ABRIR -->
+      <div class="panel" id="panel-open" role="tabpanel" aria-labelledby="tab-open" hidden>
+        <div class="field">
+          <label class="label" for="codeIn">Código ou link da cápsula</label>
+          <textarea class="textarea code" id="codeIn" placeholder="CAPSULA1.eyJ2Ijox…" spellcheck="false"></textarea>
+          <div class="row">
+            <button class="btn btn-primary" type="button" id="loadBtn">Carregar cápsula</button>
+            <button class="btn btn-ghost" type="button" id="exampleBtn">Usar a cápsula de exemplo</button>
+          </div>
+          <p class="error" id="loadErr" hidden></p>
+        </div>
+        <div id="capsuleInfo" hidden>
+          <div class="capsule-meta">
+            <div class="to" id="ciTo"></div>
+            <div class="when" id="ciWhen"></div>
+          </div>
+        </div>
+        <div id="letterSlot"></div>
+      </div>
+    </div>
+
+    <div class="dial-col">
+      <aside class="dial-card" id="dialCard" aria-live="polite">
+        <div class="dial-head">
+          <h2 class="dial-title" id="dTitle">Cápsula de exemplo</h2>
+          <span class="chip" id="dChip">selada</span>
+        </div>
+        <div class="dial">
+          <canvas id="dial" width="680" height="680" aria-hidden="true"></canvas>
+          <div class="dial-center">
+            <div class="dial-big" id="dBig">0%</div>
+            <div class="dial-small" id="dSmall">≈ 15 s neste aparelho</div>
+          </div>
+        </div>
+        <dl class="stats">
+          <div class="stat"><dt>Quadraturas</dt><dd id="sDone">0</dd></div>
+          <div class="stat"><dt>Total</dt><dd id="sTotal">—</dd></div>
+          <div class="stat"><dt>Velocidade</dt><dd id="sRate">—</dd></div>
+          <div class="stat"><dt>Falta</dt><dd id="sEta">—</dd></div>
+        </dl>
+        <div class="dial-actions">
+          <button class="btn btn-primary btn-wide" type="button" id="goBtn">Começar a abrir</button>
+          <button class="btn btn-ghost" type="button" id="pauseBtn" hidden>Pausar</button>
+        </div>
+        <p class="dial-note" id="dNote">Uma cápsula pronta para você ver o processo. Aperte e acompanhe o cálculo.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="how" aria-labelledby="howTitle">
+    <h2 id="howTitle">Como uma conta vira um cadeado de tempo</h2>
+    <ol class="steps">
+      <li>
+        <h3>Quem sela pega um atalho</h3>
+        <p>Seu navegador sorteia dois primos de 1024 bits, <code>p</code> e <code>q</code>, e publica só <code>N = p·q</code>. Sabendo os primos, ele calcula o resultado final em milissegundos, cifra a mensagem com AES-256-GCM e joga os primos fora.</p>
+      </li>
+      <li>
+        <h3>Quem abre faz o caminho inteiro</h3>
+        <p>Sem os primos, o único jeito conhecido é elevar ao quadrado <code>T</code> vezes: <code>x ← x² mod N</code>. Cada passo precisa do anterior, então mil computadores não vão mais rápido que um.</p>
+      </li>
+      <li>
+        <h3>O resultado é a chave</h3>
+        <p>Depois da última quadratura, o número obtido passa por SHA-256 e vira a chave AES. Se o cálculo não terminou, não há chave, e a mensagem continua ruído.</p>
+      </li>
+    </ol>
+    <div class="fine">
+      <p><b>O tempo é medido em trabalho, não em relógio.</b> A cápsula guarda um número de quadraturas calibrado pela velocidade do aparelho de quem selou. Um aparelho mais rápido abre um pouco antes; um celular antigo, depois.</p>
+      <p><b>O progresso fica salvo.</b> Pode pausar ou fechar a aba: o ponto em que o cálculo parou fica guardado neste navegador e continua de onde estava.</p>
+      <p><b>A ideia tem história.</b> É o quebra-cabeça de Rivest, Shamir e Wagner (1996). Em 1999, Rivest selou uma cápsula assim no MIT prevendo 35 anos de cálculo; ela foi aberta em 2019.</p>
+      <p><b>Nada sai do seu aparelho.</b> Não há login, banco de dados nem rede. O código que você envia é o único lugar onde a mensagem existe, cifrada.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Núcleo matemático: roda na página e também como Web Worker (mesmo código). -->
+<script id="core">
+var Core = (function () {
+  var SMALL = (function () {
+    var n = 3000, s = new Uint8Array(n), out = [];
+    for (var i = 2; i < n; i++) if (!s[i]) { out.push(BigInt(i)); for (var j = i * i; j < n; j += i) s[j] = 1; }
+    return out;
+  })();
+  function randBytes(n) { var a = new Uint8Array(n); crypto.getRandomValues(a); return a; }
+  function bytesToBig(a) { var h = ''; for (var i = 0; i < a.length; i++) h += a[i].toString(16).padStart(2, '0'); return BigInt('0x' + (h || '0')); }
+  function modPow(b, e, m) {
+    var r = 1n; b %= m;
+    while (e > 0n) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; }
+    return r;
+  }
+  function isProbablePrime(n, rounds) {
+    for (var k = 0; k < SMALL.length; k++) { var p = SMALL[k]; if (n === p) return true; if (n % p === 0n) return false; }
+    var d = n - 1n, s = 0;
+    while ((d & 1n) === 0n) { d >>= 1n; s++; }
+    var bytes = Math.ceil(n.toString(16).length / 2);
+    outer: for (var r = 0; r < rounds; r++) {
+      var a = bytesToBig(randBytes(bytes)) % (n - 4n) + 2n;
+      var x = modPow(a, d, n);
+      if (x === 1n || x === n - 1n) continue;
+      for (var i = 1; i < s; i++) { x = x * x % n; if (x === n - 1n) continue outer; }
+      return false;
+    }
+    return true;
+  }
+  function genPrime(bits) {
+    for (;;) {
+      var a = randBytes(bits / 8); a[0] |= 0xC0; a[a.length - 1] |= 1;
+      var n = bytesToBig(a);
+      if (isProbablePrime(n, 32)) return n;
+    }
+  }
+  function bench(ms) {
+    var a = randBytes(256); a[0] |= 0x80; a[255] |= 1;
+    var N = bytesToBig(a), x = 3n, count = 0, t0 = Date.now(), dt = 0;
+    while ((dt = Date.now() - t0) < ms) { for (var i = 0; i < 500; i++) x = x * x % N; count += 500; }
+    return Math.round(count / (dt / 1000));
+  }
+  function seal(T) {
+    var p = genPrime(1024), q;
+    do { q = genPrime(1024); } while (q === p);
+    var N = p * q, phi = (p - 1n) * (q - 1n);
+    var e = modPow(2n, BigInt(T), phi);
+    var b = modPow(2n, e, N);
+    return { N: N.toString(16), b: b.toString(16) };
+  }
+  return { seal: seal, bench: bench, modPow: modPow };
+})();
+
+if (typeof window === 'undefined') {
+  // Web Worker
+  self.onmessage = function (ev) {
+    var m = ev.data;
+    if (m.cmd === 'bench') self.postMessage({ type: 'bench', rate: Core.bench(m.ms || 600) });
+    else if (m.cmd === 'seal') self.postMessage({ type: 'sealed', res: Core.seal(m.T) });
+    else if (m.cmd === 'grind') {
+      var N = BigInt('0x' + m.N), x = BigInt('0x' + m.x), i = m.i, T = m.T, last = Date.now();
+      while (i < T) {
+        var stop = Math.min(T, i + 2000);
+        for (; i < stop; i++) x = x * x % N;
+        var now = Date.now();
+        if (now - last > 180) { last = now; self.postMessage({ type: 'progress', i: i, x: x.toString(16) }); }
+      }
+      self.postMessage({ type: 'done', i: i, x: x.toString(16) });
+    }
+  };
+}
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  // Cápsula de exemplo (T ≈ 15 s num notebook comum). Gerada com o mesmo algoritmo desta página.
+  var EXAMPLE = 'CAPSULA1.eyJ2IjoxLCJuIjoiczExYWJEZGMwOFdyT09yREtqZXE1QXIwZ2hYczBlcXRZbS1DVlg0a1hWVm8yc2M3b0tteVNod0dsbnA5WGk5WUhPQnN6bnk2MWdwZ3MzQ0JRUWRPQXdSaGV6Z3lvVE9rOGM0X3lBNEhIQ29uVmllX2VFZjFFZ3hVTk12V0ZPTmFERm51QnBMalBmT1FJWkF5bFpTOW1BdVZxZE5PNTVSUnprM0FiSkxjVmdkT2VldkhOc19QYXBSWE5RS0FwN0J6WUlHcEROcjNlT3pNb3lGNTYyU1Y2ZThUSTd4M2JkQ2JRcWhnYUpqaDc2S0pFOFJMazRuaVJtMlh3YlhVakpNN2xJRmwtVHo4eG9JRVlHWFBpRjVuN0ZSa2hlNFgxYVZ5YnV6bmJZSVZaNzRtdTd3R3FySVVnWV96QUhrM1lEc0dXSkVJZlJ6YVhBcVFIb3ZfT3lmOEh3IiwidCI6MjIwMDAwMCwiciI6MTUwMDAwLCJzIjoxNzkwMjU5OTA3MzA1LCJsIjoiQ8OhcHN1bGEgZGUgZXhlbXBsbyIsIml2IjoiT0VTRHZuWkJKY011Tk5nSyIsImMiOiJGcGhhb2ZOc2VoNXlGaDl0TGIyZG1fMVBqNkFYbW9GSXplSHJhSmhkbVBENjlocDJyQVMtR3djeDVOTkk1RjZmUHAzVk5ickNxQU9TV2FoSkxlcVRENmJ1OG5kTTJKSmg0Z3dpSFc5RmFyUmduM0RicW1FM1pTQWx5QkQ2Q01FamY4bl9HZENmbzdPcElJSUcwZDV3RGlPaXN5b1BTY1hxZmdYRzFmdjNrUE5KQU81dGFyU0dFbVFGcktYdzJIaTVsM3YwVWdfSWxYeGRkZkRFVE85RzFnMVJKeFRCc2xLY0hQa0pRZGFNWHpiTkVKelg1OGRDT3ZlZXRTdVdWUnY4YjFieHpjcHpNellGSF9ab1FsUGxPN3NJQnVvdUVsaGlwcS01VzJxc1ZtNFpGMUg3VklNMEVSMlFyTXBjc0E2ZDc1OFg3Q3pNLWV6QW1FUjQ4V0RseUpDWmZWYmZMZFVPXzNaN3RPcGpiaTU1ZlNPWWFuVnRjZWtpUmx0ZFplVk1GX0lVR2xXNWZxcDF2cW5HNHBUX240ZnFHQ1JJakRiT3AtekJhTG5vZmZQbVBJRU9vM2Rhb1R3RTdNdDFEMlBzMzVzZUczRG5QRHdHb09sNWFVMjdVSFpILWdvIn0';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var fmtInt = new Intl.NumberFormat('pt-BR');
+  var LS = {
+    get: function (k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  /* ---------------- worker plumbing ---------------- */
+  var coreSrc = $('core').textContent;
+  var workerOK = true;
+  function makeWorker() {
+    if (workerOK) {
+      try {
+        var url = URL.createObjectURL(new Blob([coreSrc], { type: 'text/javascript' }));
+        var w = new Worker(url);
+        return w;
+      } catch (e) { workerOK = false; }
+    }
+    return makeInlineWorker();
+  }
+  // Fallback sem Worker: roda o mesmo núcleo em fatias na thread principal.
+  function makeInlineWorker() {
+    var dead = false, fake = { onmessage: null, terminate: function () { dead = true; } };
+    fake.postMessage = function (m) {
+      var send = function (d) { if (!dead && fake.onmessage) fake.onmessage({ data: d }); };
+      setTimeout(function () {
+        if (m.cmd === 'bench') send({ type: 'bench', rate: Core.bench(m.ms || 600) });
+        else if (m.cmd === 'seal') send({ type: 'sealed', res: Core.seal(m.T) });
+        else if (m.cmd === 'grind') {
+          var N = BigInt('0x' + m.N), x = BigInt('0x' + m.x), i = m.i, T = m.T;
+          (function step() {
+            if (dead) return;
+            var t0 = performance.now();
+            while (i < T && performance.now() - t0 < 60) { var stop = Math.min(T, i + 500); for (; i < stop; i++) x = x * x % N; }
+            if (i >= T) send({ type: 'done', i: i, x: x.toString(16) });
+            else { send({ type: 'progress', i: i, x: x.toString(16) }); setTimeout(step, 0); }
+          })();
+        }
+      }, 0);
+    };
+    return fake;
+  }
+  function ask(msg, expect) {
+      return new Promise(function (resolve, reject) {
+        var w = makeWorker(), settled = false;
+        var retry = function () { if (settled) return; settled = true; try { w.terminate(); } catch (e) {} workerOK = false; ask(msg, expect).then(resolve, reject); };
+        var timer = workerOK && msg.cmd === 'bench' ? setTimeout(retry, 5000) : null;
+        w.onmessage = function (ev) {
+          if (ev.data.type === expect && !settled) { settled = true; clearTimeout(timer); w.terminate(); resolve(ev.data); }
+        };
+        w.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); clearTimeout(timer); retry(); };
+        w.postMessage(msg);
+      });
+  }
+
+  /* ---------------- encoding ---------------- */
+  function hexToBytes(h, len) {
+    h = h.padStart(len * 2, '0'); var a = new Uint8Array(len);
+    for (var i = 0; i < len; i++) a[i] = parseInt(h.substr(i * 2, 2), 16);
+    return a;
+  }
+  function bytesToHex(a) { var h = ''; for (var i = 0; i < a.length; i++) h += a[i].toString(16).padStart(2, '0'); return h; }
+  function b64u(bytes) { var s = ''; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function unb64u(str) { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; var s = atob(str), a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  var enc = new TextEncoder(), dec = new TextDecoder();
+
+  async function keyFrom(bHex) {
+    var digest = await crypto.subtle.digest('SHA-256', hexToBytes(bHex, 256));
+    return crypto.subtle.importKey('raw', digest, 'AES-GCM', false, ['encrypt', 'decrypt']);
+  }
+  function packCode(obj) { return 'CAPSULA1.' + b64u(enc.encode(JSON.stringify(obj))); }
+  function unpackCode(text) {
+    text = (text || '').trim();
+    var m = text.match(/CAPSULA1\.[A-Za-z0-9_-]+/);
+    if (!m) throw new Error('Não encontrei um código de cápsula. Ele começa com CAPSULA1.');
+    var obj = JSON.parse(dec.decode(unb64u(m[0].slice(9))));
+    if (obj.v !== 1 || !obj.n || !obj.t || !obj.iv || !obj.c) throw new Error('O código está incompleto. Confira se foi copiado inteiro.');
+    return { code: m[0], cap: obj };
+  }
+
+  /* ---------------- formatting ---------------- */
+  function human(sec) {
+    if (!isFinite(sec)) return '—';
+    sec = Math.max(0, Math.round(sec));
+    if (sec < 60) return sec + ' s';
+    var m = Math.round(sec / 60);
+    if (m < 60) return m + ' min';
+    var h = Math.floor(sec / 3600), mm = Math.round((sec % 3600) / 60);
+    if (h < 48) return h + ' h' + (mm ? ' ' + mm + ' min' : '');
+    var d = Math.floor(sec / 86400), hh = Math.round((sec % 86400) / 3600);
+    return d + ' dias' + (hh ? ' ' + hh + ' h' : '');
+  }
+  function compact(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(n >= 1e10 ? 0 : 1).replace('.', ',') + ' bi';
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.', ',') + ' mi';
+    if (n >= 1e4) return Math.round(n / 1e3) + ' mil';
+    return fmtInt.format(n);
+  }
+  function dateStr(ms) {
+    try { return new Date(ms).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' }); } catch (e) { return new Date(ms).toISOString(); }
+  }
+
+  /* ---------------- dial ---------------- */
+  var canvas = $('dial'), ctx = canvas.getContext('2d');
+  var dial = { p: 0, target: 0, spin: 0, active: false, done: false };
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function drawDial() {
+    var W = canvas.width, c = W / 2, R = W * 0.44;
+    var brass = cssVar('--brass-bright'), track = cssVar('--dial-track'), ink = cssVar('--ink'), patina = cssVar('--patina');
+    ctx.clearRect(0, 0, W, W);
+    var TICKS = 120, lit = dial.p * TICKS;
+    for (var k = 0; k < TICKS; k++) {
+      var a = -Math.PI / 2 + (k / TICKS) * Math.PI * 2;
+      var major = k % 10 === 0;
+      var r0 = R - (major ? 34 : 22), r1 = R;
+      var on = k < lit;
+      ctx.strokeStyle = on ? (dial.done ? patina : brass) : track;
+      ctx.lineWidth = major ? 6 : 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(c + Math.cos(a) * r0, c + Math.sin(a) * r0);
+      ctx.lineTo(c + Math.cos(a) * r1, c + Math.sin(a) * r1);
+      ctx.stroke();
+    }
+    // anel interno: a "engrenagem" de quadraturas
+    var ri = R - 58;
+    ctx.lineWidth = 2; ctx.strokeStyle = track;
+    ctx.beginPath(); ctx.arc(c, c, ri, 0, Math.PI * 2); ctx.stroke();
+    if (dial.active || dial.done) {
+      var s = dial.spin;
+      ctx.strokeStyle = dial.done ? patina : ink; ctx.lineWidth = 3;
+      for (var j = 0; j < 3; j++) {
+        var st = s + j * (Math.PI * 2 / 3);
+        ctx.beginPath(); ctx.arc(c, c, ri, st, st + (dial.done ? Math.PI * 2 / 3 : 0.5)); ctx.stroke();
+      }
+    }
+    // ponteiro de progresso
+    var ap = -Math.PI / 2 + dial.p * Math.PI * 2;
+    ctx.fillStyle = dial.done ? patina : brass;
+    ctx.beginPath(); ctx.arc(c + Math.cos(ap) * (R + 16), c + Math.sin(ap) * (R + 16), 8, 0, Math.PI * 2); ctx.fill();
+  }
+  function loop() {
+    dial.p += (dial.target - dial.p) * (reduce ? 1 : 0.12);
+    if (Math.abs(dial.target - dial.p) < 1e-4) dial.p = dial.target;
+    if (dial.active && !reduce) dial.spin += 0.09;
+    drawDial();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+  if (window.matchMedia) {
+    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawDial); } catch (e) {}
+  }
+
+  /* ---------------- tabs ---------------- */
+  function showTab(which) {
+    var seal = which === 'seal';
+    $('tab-seal').setAttribute('aria-selected', seal); $('tab-open').setAttribute('aria-selected', !seal);
+    $('panel-seal').hidden = !seal; $('panel-open').hidden = seal;
+  }
+  $('tab-seal').onclick = function () { showTab('seal'); };
+  $('tab-open').onclick = function () { showTab('open'); };
+
+  /* ---------------- calibration ---------------- */
+  var rate = null; // quadraturas/s neste aparelho
+  var durSec = 300;
+  function updateCost() {
+    if (!rate) return;
+    var T = Math.max(1000, Math.round(durSec * rate));
+    $('cost').innerHTML = 'Este aparelho faz <b>' + compact(rate) + '</b> quadraturas de 2048 bits por segundo.<br>' +
+      'A cápsula vai exigir <b>' + fmtInt.format(T) + '</b> quadraturas em sequência, cerca de <b>' + human(durSec) + '</b> num aparelho parecido com este.' +
+      (durSec >= 86400 ? '<br>Quem abrir precisa manter a aba aberta por esse tempo somado. Pausas não perdem progresso.' : '');
+  }
+  ask({ cmd: 'bench', ms: 700 }, 'bench').then(function (r) {
+    rate = r.rate; updateCost();
+    if (!running) setIdleDial();
+  });
+
+  $('presets').addEventListener('click', function (e) {
+    var b = e.target.closest('.preset'); if (!b) return;
+    [].forEach.call(document.querySelectorAll('.preset'), function (x) { x.setAttribute('aria-pressed', x === b); });
+    $('customN').value = '';
+    durSec = +b.dataset.s; updateCost();
+  });
+  function customChange() {
+    var n = parseFloat($('customN').value);
+    if (!(n > 0)) return;
+    [].forEach.call(document.querySelectorAll('.preset'), function (x) { x.setAttribute('aria-pressed', 'false'); });
+    durSec = n * +$('customU').value; updateCost();
+  }
+  $('customN').addEventListener('input', customChange);
+  $('customU').addEventListener('change', customChange);
+
+  /* ---------------- seal ---------------- */
+  var lastCode = null;
+  $('panel-seal').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var msg = $('msg').value;
+    if (!msg.trim()) { $('sealStatus').textContent = 'Escreva uma mensagem para selar.'; $('msg').focus(); return; }
+    if (running) pause();
+    var btn = $('sealBtn'); btn.disabled = true;
+    $('sealResult').hidden = true;
+    $('sealStatus').textContent = 'Sorteando dois primos de 1024 bits…';
+    setDial({ title: 'Selando', chip: ['gerando primos', 'work'], big: '···', small: 'procurando primos de 1024 bits', active: true, p: 0 });
+    try {
+      if (!rate) rate = (await ask({ cmd: 'bench', ms: 600 }, 'bench')).rate;
+      var T = Math.max(1000, Math.round(durSec * rate));
+      var t0 = performance.now();
+      var r = (await ask({ cmd: 'seal', T: T }, 'sealed')).res;
+      var key = await keyFrom(r.b);
+      var iv = crypto.getRandomValues(new Uint8Array(12));
+      var payload = enc.encode(JSON.stringify({ m: msg }));
+      var ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, payload));
+      var cap = { v: 1, n: b64u(hexToBytes(r.N, 256)), t: T, r: rate, s: Date.now(), l: $('to').value.trim().slice(0, 80), iv: b64u(iv), c: b64u(ct) };
+      lastCode = packCode(cap);
+      $('codeOut').value = lastCode;
+      $('sealResult').hidden = false;
+      $('copyLink').hidden = !canLink();
+      $('sealStatus').textContent = 'Selada em ' + Math.round(performance.now() - t0) + ' ms. Abrir vai levar ' + human(T / rate) + '.';
+      setDial({ title: 'Selada', chip: ['pronta', 'done'], big: 'Selada', small: 'atalho: ' + Math.round(performance.now() - t0) + ' ms\ncaminho longo: ' + human(T / rate), active: false, p: 0 });
+      $('sTotal').textContent = compact(T); $('sDone').textContent = '0'; $('sRate').textContent = compact(rate) + '/s'; $('sEta').textContent = human(T / rate);
+      $('goBtn').textContent = 'Abrir esta cápsula'; $('goBtn').hidden = false; $('pauseBtn').hidden = true;
+      $('dNote').textContent = 'Os primos já foram descartados. Nem esta página consegue mais abrir pelo atalho.';
+      pendingOpen = lastCode;
+      $('sealResult').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    } catch (err) {
+      $('sealStatus').textContent = 'Não foi possível selar: ' + err.message;
+    } finally { btn.disabled = false; }
+  });
+  function canLink() { try { return window.top === window && /^https?:$/.test(location.protocol); } catch (e) { return false; } }
+  function linkFor(code) { return location.href.split('#')[0] + '#' + code; }
+  function copy(text, label) {
+    var done = function () { $('copyToast').textContent = label + ' copiado'; setTimeout(function () { $('copyToast').textContent = ''; }, 2200); };
+    var fallback = function () { $('codeOut').focus(); $('codeOut').select(); $('copyToast').textContent = 'Selecionado. Use Ctrl+C / Cmd+C.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+  $('copyCode').onclick = function () { copy(lastCode, 'Código'); };
+  $('copyLink').onclick = function () { copy(linkFor(lastCode), 'Link'); };
+  $('tryIt').onclick = function () { showTab('open'); $('codeIn').value = lastCode; loadCapsule(lastCode, true); };
+
+  /* ---------------- open ---------------- */
+  var current = null; // { code, cap, N, key }
+  var worker = null, running = false, pendingOpen = null;
+  var liveRate = null, lastTick = null;
+
+  function ckKey(cap) { return 'capsula:' + cap.c.slice(0, 24); }
+
+  function setDial(o) {
+    if (o.title != null) $('dTitle').textContent = o.title;
+    if (o.chip) { $('dChip').textContent = o.chip[0]; $('dChip').dataset.state = o.chip[1] || ''; }
+    if (o.big != null) $('dBig').textContent = o.big;
+    if (o.small != null) $('dSmall').textContent = o.small;
+    if (o.active != null) dial.active = o.active;
+    if (o.done != null) dial.done = o.done;
+    if (o.p != null) { dial.target = o.p; if (o.snap) dial.p = o.p; }
+  }
+  function setIdleDial() {
+    if (current || running || pendingOpen) return;
+    var cap = unpackCode(EXAMPLE).cap;
+    setDial({ title: 'Cápsula de exemplo', chip: ['selada', ''], big: '0%', small: rate ? '≈ ' + human(cap.t / rate) + ' neste aparelho' : 'medindo…', p: 0 });
+    $('sTotal').textContent = compact(cap.t); $('sRate').textContent = rate ? compact(rate) + '/s' : '—'; $('sEta').textContent = rate ? human(cap.t / rate) : '—';
+  }
+
+  function loadCapsule(text, autostart) {
+    $('loadErr').hidden = true;
+    var parsed;
+    try { parsed = unpackCode(text); } catch (e) { $('loadErr').textContent = e.message; $('loadErr').hidden = false; return false; }
+    if (running) pause();
+    var cap = parsed.cap;
+    var nHex = bytesToHex(unb64u(cap.n));
+    current = { code: parsed.code, cap: cap, N: nHex };
+    $('letterSlot').innerHTML = '';
+    $('capsuleInfo').hidden = false;
+    $('ciTo').textContent = cap.l || 'Cápsula sem etiqueta';
+    $('ciWhen').textContent = 'Selada em ' + dateStr(cap.s) + ' · ' + fmtInt.format(cap.t) + ' quadraturas · previsto ≈ ' + human(cap.t / (cap.r || 1)) + ' no aparelho de quem selou';
+    var ck = LS.get(ckKey(cap)), i0 = ck && ck.i ? ck.i : 0;
+    if (ck && ck.opened) { reveal(ck.opened, cap, true); return true; }
+    setDial({ title: cap.l || 'Cápsula', chip: [i0 ? 'pausada' : 'selada', ''], big: pct(i0 / cap.t), small: '≈ ' + human((cap.t - i0) / (rate || cap.r)) + ' neste aparelho', active: false, done: false, p: i0 / cap.t, snap: true });
+    $('sDone').textContent = compact(i0); $('sTotal').textContent = compact(cap.t);
+    $('sRate').textContent = rate ? compact(rate) + '/s' : '—'; $('sEta').textContent = human((cap.t - i0) / (rate || cap.r));
+    $('goBtn').hidden = false; $('goBtn').textContent = i0 ? 'Continuar' : 'Começar a abrir'; $('pauseBtn').hidden = true;
+    $('dNote').textContent = i0 ? 'Este navegador já fez parte do caminho. Continue de onde parou.' : 'Aperte para começar. Pode pausar quando quiser.';
+    pendingOpen = null;
+    if (autostart) start();
+    return true;
+  }
+  function pct(f) { var v = f * 100; return (v < 10 && v > 0 ? v.toFixed(1).replace('.', ',') : Math.floor(v)) + '%'; }
+
+  function start() {
+    if (!current) {
+      var src = pendingOpen || EXAMPLE;
+      if (!pendingOpen) { showTab('open'); $('codeIn').value = EXAMPLE; }
+      if (!loadCapsule(src, false)) return;
+      if (!current) return;
+    }
+    var cap = current.cap, ck = LS.get(ckKey(cap));
+    var i = ck && ck.i ? ck.i : 0, x = ck && ck.x ? ck.x : '2';
+    if (i >= cap.t) { finish(x); return; }
+    running = true; liveRate = null; lastTick = { t: performance.now(), i: i };
+    setDial({ chip: ['calculando', 'work'], active: true, done: false });
+    $('goBtn').hidden = true; $('pauseBtn').hidden = false;
+    $('dNote').textContent = 'Cada quadratura depende da anterior. O progresso é salvo a cada instante.';
+    try { navigator.wakeLock && navigator.wakeLock.request('screen').then(function (l) { wake = l; }, function () {}); } catch (e) {}
+    worker = makeWorker();
+    worker.onmessage = function (ev) {
+      var d = ev.data;
+      if (d.type === 'progress') tick(d.i, d.x);
+      else if (d.type === 'done') { tick(d.i, d.x); stopWorker(); finish(d.x); }
+    };
+    worker.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); stopWorker(); workerOK = false; start(); };
+    worker.postMessage({ cmd: 'grind', N: current.N, x: x, i: i, T: cap.t });
+  }
+  var wake = null;
+  function tick(i, x) {
+    var cap = current.cap, now = performance.now();
+    LS.set(ckKey(cap), { i: i, x: x });
+    var dt = (now - lastTick.t) / 1000;
+    if (dt > 0.05) {
+      var r = (i - lastTick.i) / dt;
+      liveRate = liveRate ? liveRate * 0.8 + r * 0.2 : r;
+      lastTick = { t: now, i: i };
+    }
+    var f = i / cap.t;
+    setDial({ big: pct(f), small: 'x ← x² mod N\n' + x.slice(-12), p: f });
+    $('sDone').textContent = compact(i);
+    if (liveRate) { $('sRate').textContent = compact(Math.round(liveRate)) + '/s'; $('sEta').textContent = human((cap.t - i) / liveRate); }
+    if (document.hidden) document.title = pct(f) + ' · Cápsula do Tempo';
+  }
+  function stopWorker() { running = false; if (worker) { try { worker.terminate(); } catch (e) {} worker = null; } if (wake) { try { wake.release(); } catch (e) {} wake = null; } }
+  function pause() {
+    stopWorker();
+    setDial({ chip: ['pausada', ''], active: false });
+    $('goBtn').hidden = false; $('goBtn').textContent = 'Continuar'; $('pauseBtn').hidden = true;
+    $('dNote').textContent = 'Pausada. O ponto exato ficou salvo neste navegador.';
+  }
+  $('pauseBtn').onclick = pause;
+  $('goBtn').onclick = function () {
+    if (pendingOpen && (!current || current.code !== pendingOpen)) { showTab('open'); $('codeIn').value = pendingOpen; loadCapsule(pendingOpen, true); return; }
+    start();
+  };
+  $('loadBtn').onclick = function () { loadCapsule($('codeIn').value, false); };
+  $('exampleBtn').onclick = function () { $('codeIn').value = EXAMPLE; loadCapsule(EXAMPLE, false); };
+
+  async function finish(xHex) {
+    var cap = current.cap;
+    setDial({ chip: ['decifrando', 'work'], active: false, p: 1 });
+    try {
+      var key = await keyFrom(xHex);
+      var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64u(cap.iv) }, key, unb64u(cap.c));
+      var obj = JSON.parse(dec.decode(pt));
+      LS.set(ckKey(cap), { i: cap.t, x: xHex, opened: obj.m });
+      reveal(obj.m, cap, false);
+    } catch (e) {
+      LS.del(ckKey(cap));
+      setDial({ chip: ['falhou', ''], big: '×', small: 'o resultado não abriu a mensagem', done: false });
+      $('dNote').textContent = 'A conta terminou, mas a chave não confere. O código provavelmente foi alterado ou cortado.';
+      $('goBtn').hidden = false; $('goBtn').textContent = 'Recomeçar do zero'; $('pauseBtn').hidden = true;
+    }
+  }
+  function reveal(text, cap, fromCache) {
+    showTab('open');
+    setDial({ title: cap.l || 'Cápsula', chip: ['aberta', 'done'], big: '100%', small: fmtInt.format(cap.t) + '\nquadraturas feitas', active: false, done: true, p: 1, snap: fromCache });
+    $('sDone').textContent = compact(cap.t); $('sTotal').textContent = compact(cap.t); $('sEta').textContent = '0 s';
+    $('goBtn').hidden = true; $('pauseBtn').hidden = true;
+    $('dNote').textContent = fromCache ? 'Este navegador já abriu esta cápsula antes.' : 'Aberta. Nenhum servidor participou disso.';
+    document.title = 'Aberta · Cápsula do Tempo';
+    var slot = $('letterSlot'); slot.innerHTML = '';
+    var art = document.createElement('article'); art.className = 'letter';
+    art.innerHTML = '<div class="letter-seal" aria-hidden="true">C</div><p class="letter-from"></p><p class="letter-body"></p><p class="letter-foot"></p>';
+    art.querySelector('.letter-from').textContent = cap.l || 'Mensagem';
+    art.querySelector('.letter-foot').textContent = 'Selada em ' + dateStr(cap.s) + ' · aberta depois de ' + fmtInt.format(cap.t) + ' quadraturas de 2048 bits';
+    slot.appendChild(art);
+    var body = art.querySelector('.letter-body');
+    if (fromCache || reduce) body.textContent = text;
+    else {
+      chime();
+      var k = 0, step = Math.max(1, Math.ceil(text.length / 160));
+      (function type() { k = Math.min(text.length, k + step); body.textContent = text.slice(0, k); if (k < text.length) setTimeout(type, 18); })();
+    }
+    art.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  }
+  function chime() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext; if (!A) return;
+      var ac = new A(), t = ac.currentTime;
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, n) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t + n * 0.09); g.gain.linearRampToValueAtTime(0.08, t + n * 0.09 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + n * 0.09 + 1.4);
+        o.connect(g); g.connect(ac.destination); o.start(t + n * 0.09); o.stop(t + n * 0.09 + 1.5);
+      });
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && document.title.indexOf('%') > -1) document.title = 'Cápsula do Tempo'; });
+
+  // Link com #CAPSULA1... abre direto
+  try {
+    if (location.hash && location.hash.indexOf('CAPSULA1.') > -1) {
+      var h = decodeURIComponent(location.hash.slice(1));
+      showTab('open'); $('codeIn').value = h; loadCapsule(h, false);
+    }
+  } catch (e) {}
+  setIdleDial();
+})();
+</script>
+</body>
+</html>
