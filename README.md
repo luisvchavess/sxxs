@@ -188,3 +188,36 @@ Abra `limo/index.html` (ou `http://localhost:8000/limo/`).
   vizinhança 8/4), circuitos fechados (buracos cercados pela rede) e
   comparação com a árvore geradora mínima (Prim + haversine, ≈ 11.500 km).
 - **Placa de Petri:** modo livre com flocos de aveia aleatórios numa placa de 9 cm.
+
+---
+
+# Caderno Vivo — `estudos/`
+
+Flashcards com repetição espaçada que você cria a partir das suas anotações.
+
+- **Crie baralhos** colando um texto, enviando **fotos do caderno** (letra à mão
+  funciona) ou escrevendo os cartões no formato `pergunta | resposta`.
+- **Responda com suas palavras**: o Claude corrige, diz o que faltou e sugere a
+  nota. Errou? "Me explica de outro jeito" dá uma explicação nova com exemplo.
+- **SM-2**: cada cartão volta no dia certo (errou → amanhã; fácil → dias ou
+  semanas). Gráfico dos próximos 7 dias e sequência de dias estudados.
+- Atalhos: `espaço` mostra a resposta, `1–4` dá a nota, `Enter` aceita a sugestão.
+- Publicado como artifact no claude.ai, salva na sua conta (privado) e usa o
+  Claude para gerar e corrigir. Aberto como arquivo solto, funciona sem IA
+  (cartões escritos à mão) e salva no navegador.
+
+# Raio-X do Extrato — `financas/`
+
+Envie o extrato do banco e veja para onde vai o dinheiro.
+
+- Lê **OFX e CSV** dos principais bancos (Nubank, Inter, Itaú, Bradesco, BB,
+  Caixa, C6…), inclusive arquivos em Latin-1 e com vírgula decimal, detectando
+  colunas e sinais sozinho. Vários arquivos se juntam sem duplicar.
+- **Cobranças recorrentes**: assinaturas e contas fixas encontradas
+  automaticamente. Marque o que cancelaria e veja a economia por mês, por ano,
+  em horas de trabalho e investida por 1 e 5 anos.
+- **Parcelas que ainda vêm**: detecta "Parcela 2/6" e soma o que falta pagar.
+- **Custo em horas**: com sua renda e horas semanais, cada gasto vira tempo de trabalho.
+- Com o Claude (no artifact): **ler print da fatura**, **categorizar** o que as
+  regras não pegaram e **perguntar ao extrato** ("onde economizo R$ 300?").
+- Privacidade: tudo é processado no navegador e some ao fechar a aba.

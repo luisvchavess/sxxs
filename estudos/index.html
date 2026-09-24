@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caderno Vivo</title>
+<meta name="description" content="Transforme suas anotações em flashcards, responda com suas palavras e revise no dia certo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Instrument+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F3F4F7;
+  --surface: #FFFFFF;
+  --surface-2: #E8EBF1;
+  --ink: #171E2C;
+  --muted: #586174;
+  --line: #D4D9E2;
+  --accent: #2C47C2;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCE2FA;
+  --good: #1B7348;
+  --good-soft: #D3EEDF;
+  --warn: #9A5700;
+  --warn-soft: #F7E7CC;
+  --bad: #B0261C;
+  --bad-soft: #F6DAD7;
+  --shadow: 0 1px 0 rgba(23,30,44,.04), 0 14px 32px -20px rgba(23,30,44,.4);
+  --display: "Literata", "Iowan Old Style", Georgia, serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E121A; --surface: #151B25; --surface-2: #1D2431; --ink: #E5E9F0; --muted: #98A2B3; --line: #283140;
+    --accent: #8FA3FF; --accent-ink: #0E121A; --accent-soft: #1D2650;
+    --good: #6DD29C; --good-soft: #143022; --warn: #F0B45B; --warn-soft: #33260F; --bad: #FF8D84; --bad-soft: #3A1B1A;
+    --shadow: 0 1px 0 rgba(0,0,0,.25), 0 18px 40px -22px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E121A; --surface: #151B25; --surface-2: #1D2431; --ink: #E5E9F0; --muted: #98A2B3; --line: #283140;
+  --accent: #8FA3FF; --accent-ink: #0E121A; --accent-soft: #1D2650;
+  --good: #6DD29C; --good-soft: #143022; --warn: #F0B45B; --warn-soft: #33260F; --bad: #FF8D84; --bad-soft: #3A1B1A;
+  --shadow: 0 1px 0 rgba(0,0,0,.25), 0 18px 40px -22px rgba(0,0,0,.9);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--body); padding-inline: 20px; padding-block: 0 72px; }
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin-inline: auto; }
+
+.mast { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 20px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 21px/1 var(--display); letter-spacing: -.01em; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 12px/1 var(--mono); color: var(--muted); background: var(--surface-2); padding: 6px 10px; border-radius: 99px; white-space: nowrap; }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.chip[data-s="db"] i { background: var(--good); }
+.chip[data-s="local"] i { background: var(--warn); }
+
+h1, h2, h3 { font-family: var(--display); letter-spacing: -.015em; text-wrap: balance; }
+.btn {
+  appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 9px; padding: 10px 16px; font: 600 15px/1.1 var(--body);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: border-color .15s ease, background-color .15s ease, transform .1s ease;
+}
+.btn:hover { border-color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover { border-color: var(--accent); filter: brightness(1.08); }
+.btn-quiet { border-color: transparent; background: transparent; color: var(--muted); padding-inline: 10px; }
+.btn-quiet:hover { color: var(--ink); border-color: transparent; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+.hint { font-size: 13.5px; color: var(--muted); margin: 0; }
+.error { font-size: 14px; color: var(--bad); margin: 0; }
+
+/* ---------- hoje ---------- */
+.today { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 40px; align-items: end; padding-block: 40px 32px; }
+.today h1 { margin: 0 0 10px; font-size: clamp(34px, 5vw, 54px); line-height: 1.02; font-weight: 600; }
+.today h1 .n { color: var(--accent); }
+.today p { margin: 0 0 20px; color: var(--muted); max-width: 46ch; }
+.today .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.forecast { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.forecast-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.forecast-head b { font: 600 14px/1.2 var(--body); }
+.forecast-head span { font: 400 12px/1 var(--mono); color: var(--muted); }
+.bars { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 8px; align-items: end; height: 110px; }
+.bar { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 4px; height: 100%; }
+.bar .v { font: 500 12px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.bar .col { width: 100%; max-width: 30px; align-self: end; border-radius: 5px 5px 2px 2px; background: var(--accent-soft); min-height: 3px; }
+.bar.today-bar .col { background: var(--accent); }
+.bar .d { font: 400 11px/1 var(--mono); color: var(--muted); text-transform: lowercase; }
+.streak { margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.streak b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------- blocos ---------- */
+.section { margin-top: 36px; }
+.section > h2 { margin: 0 0 14px; font-size: 26px; font-weight: 600; }
+.maker { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+.seg { display: inline-grid; grid-auto-flow: column; background: var(--surface-2); border-radius: 9px; padding: 3px; gap: 3px; justify-self: start; }
+.seg button { appearance: none; border: 0; background: transparent; cursor: pointer; border-radius: 7px; padding: 7px 14px; font: 600 14px/1.1 var(--body); color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.field { display: grid; gap: 6px; }
+.label { font: 600 14px/1.2 var(--body); }
+.input, .textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 11px 13px; }
+.input:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+.drop {
+  display: grid; place-items: center; gap: 6px; text-align: center; padding: 26px 16px;
+  border: 1.5px dashed var(--line); border-radius: 12px; background: var(--bg); cursor: pointer;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop b { font-weight: 600; }
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+.thumbs img { width: 76px; height: 76px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.maker-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.progress { font: 400 13px/1.4 var(--mono); color: var(--muted); }
+
+.decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.deck {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px;
+  display: grid; gap: 10px; align-content: start;
+}
+.deck h3 { margin: 0; font-size: 18.5px; font-weight: 600; line-height: 1.25; }
+.deck .src { font: 400 11.5px/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.meter { display: flex; height: 7px; border-radius: 99px; overflow: hidden; background: var(--surface-2); }
+.meter span { display: block; height: 100%; }
+.meter .m-due { background: var(--accent); }
+.meter .m-learn { background: var(--warn); }
+.meter .m-ok { background: var(--good); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--muted); }
+.legend b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.deck .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.deck .actions .btn { padding: 8px 12px; font-size: 14px; }
+.cardlist { display: grid; gap: 0; margin: 4px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); max-height: 320px; overflow: auto; }
+.cardlist li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.cardlist .q { font-weight: 600; }
+.cardlist .a { color: var(--muted); }
+.cardlist .del { appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; align-self: start; }
+.cardlist .del:hover { color: var(--bad); background: var(--bad-soft); }
+.empty { color: var(--muted); font-size: 15px; padding: 18px; border: 1px dashed var(--line); border-radius: 12px; }
+
+/* ---------- revisão ---------- */
+.review { padding-block: 28px; }
+.review-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.review-top .count { font: 500 13px/1 var(--mono); color: var(--muted); }
+.track { height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-bottom: 22px; }
+.track span { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+.flash {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  padding: clamp(20px, 4vw, 36px); display: grid; gap: 18px; max-width: 760px; margin-inline: auto;
+}
+.flash .deckname { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.flash .front { font: 600 clamp(22px, 3.2vw, 30px)/1.25 var(--display); margin: 0; }
+.flash .back { border-top: 1px dashed var(--line); padding-top: 16px; font-size: 18px; line-height: 1.55; white-space: pre-wrap; }
+.flash .back .lbl { display: block; font: 500 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.verdict { border-radius: 10px; padding: 12px 14px; font-size: 15px; display: grid; gap: 4px; }
+.verdict b { font-weight: 700; }
+.verdict[data-v="certo"] { background: var(--good-soft); }
+.verdict[data-v="certo"] b { color: var(--good); }
+.verdict[data-v="parcial"] { background: var(--warn-soft); }
+.verdict[data-v="parcial"] b { color: var(--warn); }
+.verdict[data-v="errado"] { background: var(--bad-soft); }
+.verdict[data-v="errado"] b { color: var(--bad); }
+.explain { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 15px; white-space: pre-wrap; }
+.grades { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.grade { appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 6px; display: grid; gap: 3px; justify-items: center; font: 600 15px/1.1 var(--body); }
+.grade small { font: 400 11.5px/1 var(--mono); color: var(--muted); }
+.grade:hover { border-color: var(--ink); }
+.grade[data-g="1"] { color: var(--bad); }
+.grade[data-g="3"] { color: var(--warn); }
+.grade[data-g="4"] { color: var(--good); }
+.grade[data-g="5"] { color: var(--accent); }
+.grade.suggested { box-shadow: 0 0 0 2px currentColor inset; }
+.done { text-align: center; display: grid; gap: 12px; justify-items: center; padding-block: 30px; }
+.done h2 { margin: 0; font-size: 32px; font-weight: 600; }
+.kbd { font: 500 11px/1 var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 2px 5px; color: var(--muted); }
+
+.how { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px; }
+.how h3 { margin: 0 0 6px; font-size: 19px; font-weight: 600; }
+.how p { margin: 0; color: var(--muted); font-size: 15px; }
+
+@media (max-width: 820px) {
+  .today, .how { grid-template-columns: minmax(0,1fr); }
+  .today { padding-block: 28px 20px; }
+}
+@media (max-width: 460px) {
+  body { padding-inline: 16px; }
+  .grades { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .chip .long { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="5" y="4" width="20" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 11h10M10 16h10M10 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="25" cy="24" r="5" fill="var(--accent)"/>
+        <path d="M22.8 24l1.5 1.5 2.9-3" stroke="var(--accent-ink)" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Caderno Vivo
+    </div>
+    <span class="chip" id="saveChip" data-s=""><i></i><span id="saveText">conectando…</span></span>
+  </header>
+
+  <main id="home">
+    <section class="today">
+      <div>
+        <h1 id="todayTitle">Carregando…</h1>
+        <p id="todaySub">Cartões que você está quase esquecendo voltam hoje. Os que você sabe bem esperam mais.</p>
+        <div class="row">
+          <button class="btn btn-primary" type="button" id="btnReview">Revisar agora</button>
+          <span class="hint" id="reviewHint"></span>
+        </div>
+      </div>
+      <div class="forecast">
+        <div class="forecast-head"><b>Próximos 7 dias</b><span>cartões por dia</span></div>
+        <div class="bars" id="bars"></div>
+        <div class="streak" id="streak"></div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="makerTitle">
+      <h2 id="makerTitle">Novo baralho</h2>
+      <form class="maker" id="maker" novalidate>
+        <div class="seg" role="group" aria-label="Fonte do conteúdo" id="srcSeg">
+          <button type="button" data-src="texto" aria-pressed="true">Colar texto</button>
+          <button type="button" data-src="fotos" aria-pressed="false" id="srcFotos">Fotos do caderno</button>
+          <button type="button" data-src="manual" aria-pressed="false">Escrever cartões</button>
+        </div>
+
+        <div class="field" id="fTema">
+          <label class="label" for="tema">Tema</label>
+          <input class="input" id="tema" placeholder="ex.: Revolução Industrial, Anatomia do coração, Contabilidade I" maxlength="80">
+        </div>
+
+        <div class="field" data-for="texto">
+          <label class="label" for="notas">Suas anotações, um resumo ou um trecho do livro</label>
+          <textarea class="textarea" id="notas" maxlength="30000" placeholder="Cole aqui. Pode ser bagunçado: o Claude organiza."></textarea>
+        </div>
+
+        <div class="field" data-for="fotos" hidden>
+          <label class="drop" id="drop" for="fotos">
+            <b>Escolha ou arraste fotos das páginas</b>
+            <span class="hint" id="dropHint">Letra à mão funciona. Até 4 fotos por vez.</span>
+          </label>
+          <input type="file" id="fotos" accept="image/jpeg,image/png,image/webp" multiple hidden>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+
+        <div class="field" data-for="manual" hidden>
+          <label class="label" for="manualTxt">Um cartão por linha, no formato <span class="kbd">pergunta | resposta</span></label>
+          <textarea class="textarea" id="manualTxt" placeholder="Capital da Austrália? | Camberra&#10;Fórmula da velocidade média | Δs / Δt"></textarea>
+        </div>
+
+        <div class="field" data-for="ia">
+          <label class="label" for="qtd">Quantos cartões</label>
+          <div class="seg" role="group" aria-label="Quantidade de cartões" id="qtdSeg">
+            <button type="button" data-q="8" aria-pressed="false">8</button>
+            <button type="button" data-q="14" aria-pressed="true">14</button>
+            <button type="button" data-q="20" aria-pressed="false">20</button>
+          </div>
+        </div>
+
+        <div class="maker-foot">
+          <button class="btn btn-primary" type="submit" id="btnMake">Gerar cartões com Claude</button>
+          <button class="btn" type="button" id="btnStop" hidden>Parar</button>
+          <span class="progress" id="makeProgress" aria-live="polite"></span>
+        </div>
+        <p class="error" id="makeErr" hidden></p>
+      </form>
+    </section>
+
+    <section class="section" aria-labelledby="decksTitle">
+      <h2 id="decksTitle">Seus baralhos</h2>
+      <div class="decks" id="decks"></div>
+    </section>
+
+    <section class="how" aria-label="Como funciona">
+      <div><h3>Responder vale mais que reler</h3><p>Tentar lembrar antes de ver a resposta é o que fixa o conteúdo. Escreva do seu jeito; o Claude diz o que ficou certo e o que faltou.</p></div>
+      <div><h3>Cada cartão tem sua data</h3><p>Acertou fácil, o cartão volta em dias ou semanas. Errou, volta amanhã. É o algoritmo SM-2, o mesmo princípio de apps como o Anki.</p></div>
+      <div><h3>Poucos minutos por dia</h3><p>Revisar um pouco todo dia rende mais que maratonas antes da prova. O gráfico mostra quanto vem pela frente.</p></div>
+    </section>
+  </main>
+
+  <main id="reviewView" class="review" hidden>
+    <div class="review-top">
+      <button class="btn btn-quiet" type="button" id="btnExit">← Voltar</button>
+      <span class="count" id="rvCount"></span>
+    </div>
+    <div class="track"><span id="rvTrack" style="width:0%"></span></div>
+
+    <article class="flash" id="flash">
+      <div class="deckname" id="rvDeck"></div>
+      <p class="front" id="rvFront"></p>
+
+      <div class="field" id="rvAnswerBox">
+        <label class="label" for="rvAnswer">Sua resposta, com suas palavras</label>
+        <textarea class="textarea" id="rvAnswer" style="min-height:96px" placeholder="Escreva o que lembrar, mesmo incompleto."></textarea>
+      </div>
+      <div class="maker-foot" id="rvAsk">
+        <button class="btn btn-primary" type="button" id="btnGradeAI">Corrigir com Claude</button>
+        <button class="btn" type="button" id="btnShow">Mostrar resposta <span class="kbd">espaço</span></button>
+        <span class="progress" id="rvProgress" aria-live="polite"></span>
+      </div>
+
+      <div class="verdict" id="rvVerdict" hidden></div>
+      <div class="back" id="rvBack" hidden><span class="lbl">Resposta</span><span id="rvBackText"></span></div>
+      <div class="maker-foot" id="rvExplainRow" hidden>
+        <button class="btn" type="button" id="btnExplain">Me explica de outro jeito</button>
+      </div>
+      <div class="explain" id="rvExplain" hidden></div>
+
+      <div id="rvGrades" hidden>
+        <p class="hint" style="margin-bottom:8px">Como foi? <span id="rvSuggest"></span></p>
+        <div class="grades">
+          <button class="grade" type="button" data-g="1">Errei<small id="gi1"></small></button>
+          <button class="grade" type="button" data-g="3">Difícil<small id="gi3"></small></button>
+          <button class="grade" type="button" data-g="4">Bom<small id="gi4"></small></button>
+          <button class="grade" type="button" data-g="5">Fácil<small id="gi5"></small></button>
+        </div>
+      </div>
+    </article>
+
+    <div class="done" id="rvDone" hidden>
+      <h2>Revisão do dia feita</h2>
+      <p class="hint" id="rvDoneText"></p>
+      <button class="btn btn-primary" type="button" id="btnDoneBack">Voltar ao caderno</button>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = new Intl.NumberFormat('pt-BR');
+  var DAY = 86400000;
+  function today() { var d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / DAY); }
+  function dayKey(n) { return new Date(n * DAY).toISOString().slice(0, 10); }
+  function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
+
+  /* ============ exemplo ============ */
+  function exampleDeck() {
+    var t = today();
+    var cards = [
+      ['O que são juros compostos?', 'Juros calculados sobre o capital mais os juros já acumulados: "juros sobre juros". O crescimento é exponencial.'],
+      ['Qual a fórmula do montante com juros compostos?', 'M = C × (1 + i)^t, com a taxa i e o tempo t na mesma unidade (ex.: taxa mensal e tempo em meses).'],
+      ['R$ 1.000 aplicados a 1% ao mês por 12 meses viram quanto?', 'Cerca de R$ 1.126,83, porque 1,01^12 ≈ 1,1268.'],
+      ['O que diz a regra dos 72?', 'Divida 72 pela taxa anual em % para estimar em quantos anos o dinheiro dobra. A 8% ao ano, cerca de 9 anos.'],
+      ['Diferença entre juros simples e compostos?', 'Nos simples, os juros incidem só sobre o capital inicial (crescimento linear). Nos compostos, incidem também sobre os juros anteriores (crescimento exponencial).'],
+      ['Como converter uma taxa mensal em anual (juros compostos)?', '(1 + taxa mensal)^12 − 1. Ex.: 1% ao mês ≈ 12,68% ao ano.'],
+      ['Por que o rotativo do cartão é tão perigoso?', 'A taxa mensal é alta e se compõe: 10% ao mês viram cerca de 214% ao ano.'],
+      ['Como calcular a taxa real, descontando a inflação?', '(1 + taxa nominal) / (1 + inflação) − 1. Ex.: 10% de rendimento com 4% de inflação dá ≈ 5,77% reais.']
+    ];
+    return { id: 'd-exemplo', titulo: 'Juros compostos (exemplo)', fonte: 'exemplo', criado: Date.now(),
+      cards: cards.map(function (c) { return newCard(c[0], c[1], t); }) };
+  }
+  function newCard(f, v, t) { return { id: uid(), frente: f, verso: v, ef: 2.5, int: 0, rep: 0, due: t, lapses: 0, hist: [] }; }
+
+  /* ============ armazenamento ============ */
+  var state = { decks: [], perfil: { dias: {} } };
+  var store = null; // { kind, saveDeck, deleteDeck, savePerfil }
+  var LSKEY = 'cadernovivo:v1';
+  function localStore() {
+    function dump() { try { localStorage.setItem(LSKEY, JSON.stringify(state)); } catch (e) {} }
+    return { kind: 'local', saveDeck: dump, deleteDeck: dump, savePerfil: dump };
+  }
+  function loadLocal() { try { return JSON.parse(localStorage.getItem(LSKEY)); } catch (e) { return null; } }
+  function dbStore(col) {
+    var chains = {};
+    function queue(id, fn) { chains[id] = (chains[id] || Promise.resolve()).then(fn).catch(function (e) { console.warn('db', e); setSave('local', 'não consegui salvar agora'); }); return chains[id]; }
+    function clean(o) { return JSON.parse(JSON.stringify(o)); }
+    return {
+      kind: 'db',
+      saveDeck: function (d) { var body = clean(d); return queue(d.id, function () { return col.doc(d.id).set(body); }); },
+      deleteDeck: function (d) { return queue(d.id, function () { return col.doc(d.id).delete(); }); },
+      savePerfil: function () { var body = clean(state.perfil); return queue('perfil', function () { return col.doc('perfil').set(body); }); }
+    };
+  }
+  function setSave(kind, text) { $('saveChip').dataset.s = kind; $('saveText').textContent = text; }
+
+  async function initStorage() {
+    var api = window.claude && window.claude.use ? window.claude : null;
+    var db = null, user = null;
+    if (api) { try { var r = await Promise.all([api.use('db'), api.use('user')]); db = r[0]; user = r[1]; } catch (e) {} }
+    var id = null;
+    if (db && user) { try { id = await user.id(); } catch (e) {} }
+    if (db && id) {
+      try {
+        var col = db.collection('data/users/' + id);
+        var snap = await col.get();
+        var decks = [], perfil = null;
+        snap.docs.forEach(function (d) { var v = d.data(); if (d.id === 'perfil') perfil = v; else if (v && v.cards) decks.push(v); });
+        store = dbStore(col);
+        if (decks.length) {
+          state.decks = decks.map(function (d) { return JSON.parse(JSON.stringify(d)); }).sort(function (a, b) { return b.criado - a.criado; });
+        }
+        if (perfil) state.perfil = JSON.parse(JSON.stringify(perfil));
+        if (!state.perfil.dias) state.perfil.dias = {};
+        setSave('db', 'salvo na sua conta');
+        $('saveText').title = 'Só você vê estes baralhos.';
+        render();
+        return;
+      } catch (e) { console.warn('db indisponível', e); }
+    }
+    var saved = loadLocal();
+    if (saved && saved.decks && saved.decks.length) { state = saved; if (!state.perfil) state.perfil = { dias: {} }; }
+    store = localStore();
+    setSave('local', 'salvo neste navegador');
+    render();
+  }
+
+  /* ============ SM-2 ============ */
+  function schedule(c, q) {
+    var t = today(), n = JSON.parse(JSON.stringify(c));
+    if (q < 3) { n.rep = 0; n.int = 1; n.lapses = (n.lapses || 0) + 1; }
+    else {
+      n.int = n.rep === 0 ? (q === 5 ? 4 : q === 4 ? 2 : 1) : n.rep === 1 ? (q === 3 ? 3 : q === 4 ? 6 : 9) : Math.max(1, Math.round(n.int * n.ef * (q === 3 ? 0.8 : q === 5 ? 1.3 : 1)));
+      n.rep++;
+    }
+    n.ef = Math.max(1.3, n.ef + 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+    n.due = t + n.int;
+    n.hist = (n.hist || []).concat(q).slice(-12);
+    return n;
+  }
+  function intervalLabel(d) { return d <= 1 ? 'amanhã' : d < 30 ? d + ' dias' : d < 365 ? Math.round(d / 30) + ' meses' : Math.round(d / 365) + ' anos'; }
+  function statusOf(c) { var t = today(); if (c.due <= t) return 'due'; return c.int >= 21 ? 'ok' : 'learn'; }
+
+  /* ============ Claude ============ */
+  var samplePromise = (window.claude && window.claude.use) ? window.claude.use('sample').catch(function () { return null; }) : Promise.resolve(null);
+  var sampleOK = null, imagesOK = false;
+  samplePromise.then(async function (s) {
+    sampleOK = !!s;
+    if (s) { try { var lim = await s.limits(); imagesOK = !!(lim && lim.images); if (imagesOK) $('dropHint').textContent = 'Letra à mão funciona. Até ' + lim.images.maxCount + ' fotos por vez.'; } catch (e) { imagesOK = false; } }
+    applyAIAvailability();
+  });
+  function applyAIAvailability() {
+    var ai = sampleOK === true;
+    $('srcFotos').hidden = !(ai && imagesOK);
+    if (!ai && srcMode !== 'manual') selectSrc('manual');
+    [].forEach.call(document.querySelectorAll('#srcSeg [data-src="texto"]'), function (b) { b.hidden = !ai; });
+    $('btnGradeAI').hidden = !ai;
+    $('rvAnswerBox').hidden = !ai;
+  }
+  function aiError(e) {
+    var c = e && e.code;
+    if (c === 'not_granted' || c === 'sampling_disabled' || c === 'not_declared' || c === 'capability_disabled') { sampleOK = false; applyAIAvailability(); return 'O uso do Claude não foi permitido nesta página. Você ainda pode escrever cartões à mão.'; }
+    if (c === 'rate_limited') return 'Muitos pedidos seguidos. Espere um pouco e tente de novo.';
+    if (c === 'prompt_too_large') return 'O texto é grande demais. Mande uma parte de cada vez.';
+    if (c === 'image_rejected') return 'Não consegui ler uma das fotos. Tente outra imagem (JPG ou PNG).';
+    if (c === 'refused') return 'O Claude não quis processar esse conteúdo. Tente outro trecho.';
+    if (c === 'invalid_json') return 'A resposta veio num formato inesperado. Tente de novo.';
+    if (c === 'session_expired') return 'Sua sessão expirou. Entre de novo no claude.ai.';
+    if (c === 'cancelled') return '';
+    return 'Algo falhou na conexão com o Claude. Tente de novo.';
+  }
+
+  /* ============ criar baralho ============ */
+  var srcMode = 'texto', qtd = 14, photos = [], makeCtl = null;
+  function selectSrc(m) {
+    srcMode = m;
+    [].forEach.call($('srcSeg').children, function (b) { b.setAttribute('aria-pressed', b.dataset.src === m); });
+    [].forEach.call(document.querySelectorAll('#maker [data-for]'), function (el) {
+      var f = el.dataset.for; el.hidden = f === 'ia' ? m === 'manual' : f !== m;
+    });
+    $('btnMake').textContent = m === 'manual' ? 'Criar baralho' : 'Gerar cartões com Claude';
+    $('makeErr').hidden = true;
+  }
+  $('srcSeg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) selectSrc(b.dataset.src); });
+  $('qtdSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; qtd = +b.dataset.q;
+    [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b); });
+  });
+  function addPhotos(files) {
+    [].forEach.call(files, function (f) { if (/^image\//.test(f.type) && photos.length < 4) photos.push(f); });
+    var th = $('thumbs'); th.innerHTML = '';
+    photos.forEach(function (f, i) {
+      var img = document.createElement('img'); img.alt = 'Foto ' + (i + 1); img.src = URL.createObjectURL(f); th.appendChild(img);
+    });
+  }
+  $('fotos').addEventListener('change', function () { addPhotos(this.files); this.value = ''; });
+  ['dragover', 'dragenter'].forEach(function (ev) { $('drop').addEventListener(ev, function (e) { e.preventDefault(); this.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { $('drop').addEventListener(ev, function (e) { e.preventDefault(); this.classList.remove('over'); if (ev === 'drop') addPhotos(e.dataTransfer.files); }); });
+
+  function makeError(msg) { $('makeErr').textContent = msg; $('makeErr').hidden = !msg; }
+  $('maker').addEventListener('submit', async function (e) {
+    e.preventDefault(); makeError('');
+    var tema = $('tema').value.trim();
+    if (srcMode === 'manual') {
+      var lines = $('manualTxt').value.split('\n').map(function (l) { return l.split('|'); }).filter(function (p) { return p.length >= 2 && p[0].trim() && p.slice(1).join('|').trim(); });
+      if (!lines.length) return makeError('Escreva pelo menos um cartão no formato pergunta | resposta.');
+      var t = today();
+      addDeck({ id: 'd-' + uid(), titulo: tema || 'Meus cartões', fonte: 'manual', criado: Date.now(), cards: lines.map(function (p) { return newCard(p[0].trim(), p.slice(1).join('|').trim(), t); }) });
+      $('manualTxt').value = ''; $('tema').value = '';
+      return;
+    }
+    var sample = await samplePromise;
+    if (!sample) return makeError('O Claude não está disponível aqui. Use "Escrever cartões".');
+    var notas = $('notas').value.trim();
+    if (srcMode === 'texto' && notas.length < 40) return makeError('Cole um texto um pouco maior (pelo menos algumas frases).');
+    if (srcMode === 'fotos' && !photos.length) return makeError('Escolha pelo menos uma foto.');
+
+    var prompt = 'Você é um professor montando flashcards de revisão para um estudante brasileiro.\n' +
+      (tema ? 'Tema informado pelo estudante: ' + tema + '\n' : '') +
+      (srcMode === 'fotos' ? 'O material está nas fotos anexas (páginas de caderno ou livro). Leia com atenção, inclusive letra à mão.\n' : 'Material do estudante:\n"""\n' + notas.slice(0, 24000) + '\n"""\n') +
+      '\nCrie exatamente ' + qtd + ' flashcards em português do Brasil, baseados SÓ no que está no material (não invente fatos que não estão lá).\n' +
+      'Regras: uma ideia por cartão; a frente é uma pergunta clara e específica; o verso responde em 1 a 3 frases curtas; misture tipos (definição, por quê, como, exemplo, comparação, aplicação); evite perguntas de sim/não.\n' +
+      'Responda só com JSON neste formato:\n{"titulo": "título curto do baralho", "cards": [{"frente": "pergunta", "verso": "resposta"}]}';
+    makeCtl = new AbortController();
+    $('btnMake').disabled = true; $('btnStop').hidden = false;
+    $('makeProgress').textContent = srcMode === 'fotos' ? 'Lendo as fotos…' : 'Lendo suas anotações…';
+    try {
+      var opts = { signal: makeCtl.signal, onText: function (u) { var n = (u.text.match(/"frente"/g) || []).length; $('makeProgress').textContent = n ? 'Escrevendo cartões… ' + n + ' de ' + qtd : 'Organizando o conteúdo…'; } };
+      if (srcMode === 'fotos') opts.images = photos.slice();
+      var out = await sample.json(prompt, opts);
+      var cards = (out && Array.isArray(out.cards) ? out.cards : []).filter(function (c) { return c && c.frente && c.verso; });
+      if (!cards.length) throw { code: 'invalid_json' };
+      var t = today();
+      addDeck({ id: 'd-' + uid(), titulo: String(tema || out.titulo || 'Novo baralho').slice(0, 80), fonte: srcMode, criado: Date.now(),
+        cards: cards.map(function (c) { return newCard(String(c.frente), String(c.verso), t); }) });
+      $('makeProgress').textContent = cards.length + ' cartões criados.';
+      $('notas').value = ''; $('tema').value = ''; photos = []; $('thumbs').innerHTML = '';
+    } catch (err) {
+      $('makeProgress').textContent = '';
+      makeError(aiError(err));
+    } finally { $('btnMake').disabled = false; $('btnStop').hidden = true; makeCtl = null; }
+  });
+  $('btnStop').onclick = function () { if (makeCtl) makeCtl.abort(); };
+
+  function addDeck(d) {
+    // o exemplo sai quando entra o primeiro baralho de verdade, se nunca foi estudado
+    state.decks = state.decks.filter(function (x) { return !(x.fonte === 'exemplo' && x.cards.every(function (c) { return !c.hist.length; })); });
+    state.decks.unshift(d);
+    if (store) store.saveDeck(d);
+    render();
+    document.getElementById('decksTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function saveDeck(d) { if (store) store.saveDeck(d); }
+
+  /* ============ tela inicial ============ */
+  var openDeck = null;
+  function dueCards(deckId) {
+    var t = today(), out = [];
+    state.decks.forEach(function (d) { if (deckId && d.id !== deckId) return; d.cards.forEach(function (c) { if (c.due <= t) out.push({ deck: d, card: c }); }); });
+    return out.sort(function (a, b) { return a.card.due - b.card.due; });
+  }
+  function render() {
+    var t = today(), due = dueCards();
+    $('todayTitle').innerHTML = due.length ? '<span class="n">' + due.length + '</span> ' + (due.length === 1 ? 'cartão' : 'cartões') + ' para hoje' : 'Tudo em dia';
+    $('todaySub').textContent = due.length ? 'Cartões que você está quase esquecendo voltam hoje. Os que você sabe bem esperam mais.' : (state.decks.length ? 'Nenhuma revisão pendente. Crie um baralho novo ou volte amanhã.' : 'Crie seu primeiro baralho abaixo.');
+    $('btnReview').disabled = !due.length;
+    $('reviewHint').textContent = due.length ? '≈ ' + Math.max(1, Math.round(due.length * 0.4)) + ' min' : '';
+    // previsão
+    var bars = $('bars'); bars.innerHTML = '';
+    var counts = [], wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    for (var i = 0; i < 7; i++) {
+      var n = 0;
+      state.decks.forEach(function (d) { d.cards.forEach(function (c) { if (i === 0 ? c.due <= t : c.due === t + i) n++; }); });
+      counts.push(n);
+    }
+    var max = Math.max(4, Math.max.apply(null, counts));
+    counts.forEach(function (n, i) {
+      var b = document.createElement('div'); b.className = 'bar' + (i === 0 ? ' today-bar' : '');
+      var dt = new Date((t + i) * DAY);
+      b.innerHTML = '<span class="v">' + n + '</span><span class="col" style="height:' + Math.round(n / max * 100) + '%"></span><span class="d">' + (i === 0 ? 'hoje' : wd[dt.getUTCDay()]) + '</span>';
+      bars.appendChild(b);
+    });
+    // sequência
+    var dias = state.perfil.dias || {}, seq = 0, k = t;
+    if (!dias[dayKey(k)]) k--;
+    while (dias[dayKey(k)]) { seq++; k--; }
+    var total = 0; for (var key in dias) total += dias[key];
+    var cardsTotal = 0, dominados = 0;
+    state.decks.forEach(function (d) { cardsTotal += d.cards.length; d.cards.forEach(function (c) { if (c.int >= 21) dominados++; }); });
+    $('streak').innerHTML = '<span><b>' + seq + '</b> ' + (seq === 1 ? 'dia seguido' : 'dias seguidos') + '</span><span><b>' + fmt.format(total) + '</b> revisões feitas</span><span><b>' + dominados + '</b> de ' + cardsTotal + ' dominados</span>';
+    renderDecks();
+  }
+  function renderDecks() {
+    var box = $('decks'); box.innerHTML = '';
+    if (!state.decks.length) { box.innerHTML = '<div class="empty">Nenhum baralho ainda.</div>'; return; }
+    var FONTE = { exemplo: 'exemplo', texto: 'de um texto', fotos: 'de fotos', manual: 'escrito à mão' };
+    state.decks.forEach(function (d) {
+      var s = { due: 0, learn: 0, ok: 0 };
+      d.cards.forEach(function (c) { s[statusOf(c)]++; });
+      var n = d.cards.length || 1;
+      var el = document.createElement('article'); el.className = 'deck';
+      el.innerHTML =
+        '<span class="src"></span><h3></h3>' +
+        '<div class="meter" aria-hidden="true"><span class="m-due" style="width:' + (s.due / n * 100) + '%"></span><span class="m-learn" style="width:' + (s.learn / n * 100) + '%"></span><span class="m-ok" style="width:' + (s.ok / n * 100) + '%"></span></div>' +
+        '<div class="legend"><span><b>' + s.due + '</b> para hoje</span><span><b>' + s.learn + '</b> aprendendo</span><span><b>' + s.ok + '</b> dominados</span></div>' +
+        '<div class="actions"><button class="btn btn-primary" type="button" data-act="study"' + (s.due ? '' : ' disabled') + '>Estudar</button><button class="btn" type="button" data-act="open">' + (openDeck === d.id ? 'Fechar' : 'Ver cartões') + '</button><button class="btn btn-quiet" type="button" data-act="del">Excluir</button></div>';
+      el.querySelector('.src').textContent = d.cards.length + ' cartões · ' + (FONTE[d.fonte] || '');
+      el.querySelector('h3').textContent = d.titulo;
+      if (openDeck === d.id) {
+        var ul = document.createElement('ul'); ul.className = 'cardlist';
+        d.cards.forEach(function (c) {
+          var li = document.createElement('li');
+          li.innerHTML = '<div><div class="q"></div><div class="a"></div></div><button class="del" type="button" aria-label="Apagar cartão">×</button>';
+          li.querySelector('.q').textContent = c.frente; li.querySelector('.a').textContent = c.verso;
+          li.querySelector('.del').onclick = function () { d.cards = d.cards.filter(function (x) { return x !== c; }); saveDeck(d); render(); };
+          ul.appendChild(li);
+        });
+        el.appendChild(ul);
+      }
+      el.querySelector('[data-act="study"]').onclick = function () { startReview(d.id); };
+      el.querySelector('[data-act="open"]').onclick = function () { openDeck = openDeck === d.id ? null : d.id; renderDecks(); };
+      var del = el.querySelector('[data-act="del"]');
+      del.onclick = function () {
+        if (del.dataset.confirm) { state.decks = state.decks.filter(function (x) { return x !== d; }); if (store) store.deleteDeck(d); render(); return; }
+        del.dataset.confirm = '1'; del.textContent = 'Confirmar exclusão'; del.style.color = 'var(--bad)';
+        setTimeout(function () { if (del.isConnected) { delete del.dataset.confirm; del.textContent = 'Excluir'; del.style.color = ''; } }, 3500);
+      };
+      box.appendChild(el);
+    });
+  }
+  $('btnReview').onclick = function () { startReview(null); };
+
+  /* ============ revisão ============ */
+  var queue = [], pos = 0, doneCount = 0, cur = null, revealed = false, aiGrade = null, ctl = null, sessionTotal = 0;
+  function startReview(deckId) {
+    queue = dueCards(deckId); if (!queue.length) return;
+    // embaralha dentro do dia para não decorar a ordem
+    for (var i = queue.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp; }
+    pos = 0; doneCount = 0; sessionTotal = queue.length;
+    $('home').hidden = true; $('reviewView').hidden = false; $('rvDone').hidden = true; $('flash').hidden = false;
+    window.scrollTo(0, 0);
+    showCard();
+  }
+  function showCard() {
+    if (pos >= queue.length) return finish();
+    cur = queue[pos]; revealed = false; aiGrade = null;
+    if (ctl) { ctl.abort(); ctl = null; }
+    $('rvDeck').textContent = cur.deck.titulo;
+    $('rvFront').textContent = cur.card.frente;
+    $('rvAnswer').value = '';
+    $('rvAsk').hidden = false; $('rvProgress').textContent = '';
+    $('rvVerdict').hidden = true; $('rvBack').hidden = true; $('rvGrades').hidden = true; $('rvExplain').hidden = true; $('rvExplainRow').hidden = true;
+    $('btnGradeAI').disabled = false; $('btnShow').disabled = false;
+    $('rvCount').textContent = (doneCount + 1) + ' de ' + sessionTotal + (queue.length > sessionTotal ? ' (+' + (queue.length - sessionTotal) + ' para repetir)' : '');
+    $('rvTrack').style.width = (doneCount / Math.max(1, sessionTotal) * 100) + '%';
+    [1, 3, 4, 5].forEach(function (g) { $('gi' + g).textContent = intervalLabel(schedule(cur.card, g).int); });
+    [].forEach.call(document.querySelectorAll('.grade'), function (b) { b.classList.remove('suggested'); });
+    $('rvSuggest').textContent = '';
+    if (!$('rvAnswerBox').hidden) $('rvAnswer').focus();
+  }
+  function reveal() {
+    if (revealed) return; revealed = true;
+    $('rvBackText').textContent = cur.card.verso;
+    $('rvBack').hidden = false; $('rvGrades').hidden = false; $('rvAsk').hidden = true;
+    if (sampleOK) $('rvExplainRow').hidden = false;
+  }
+  $('btnShow').onclick = reveal;
+  $('btnGradeAI').onclick = async function () {
+    var ans = $('rvAnswer').value.trim();
+    if (!ans) { $('rvProgress').textContent = 'Escreva uma resposta primeiro, ou mostre a resposta.'; $('rvAnswer').focus(); return; }
+    var sample = await samplePromise; if (!sample) return reveal();
+    var card = cur.card;
+    ctl = new AbortController();
+    $('btnGradeAI').disabled = true; $('btnShow').disabled = true; $('rvProgress').textContent = 'Corrigindo…';
+    try {
+      var r = await sample.json(
+        'Corrija a resposta de um estudante a um flashcard. Seja justo: aceite palavras diferentes se a ideia estiver certa; não exija detalhes que não estão na resposta esperada.\n' +
+        'Pergunta: ' + card.frente + '\nResposta esperada: ' + card.verso + '\nResposta do estudante: ' + ans.slice(0, 2000) + '\n\n' +
+        'Responda só com JSON: {"veredito": "certo" | "parcial" | "errado", "nota": 1 | 3 | 4 | 5, "comentario": "1 ou 2 frases em português, falando direto com o estudante, dizendo o que acertou e o que faltou"}.\n' +
+        'nota: 5 = completa e segura, 4 = certa com pequenas lacunas, 3 = parcialmente certa, 1 = errada ou vazia.',
+        { modelTier: 'quick', signal: ctl.signal });
+      if (cur.card !== card) return;
+      var v = ['certo', 'parcial', 'errado'].indexOf(r.veredito) > -1 ? r.veredito : 'parcial';
+      var g = [1, 3, 4, 5].indexOf(+r.nota) > -1 ? +r.nota : (v === 'certo' ? 4 : v === 'parcial' ? 3 : 1);
+      aiGrade = g;
+      var box = $('rvVerdict'); box.dataset.v = v; box.innerHTML = '<b></b><span></span>';
+      box.firstChild.textContent = v === 'certo' ? 'Certo' : v === 'parcial' ? 'Quase' : 'Não foi dessa vez';
+      box.lastChild.textContent = String(r.comentario || '');
+      box.hidden = false;
+      reveal();
+      var btn = document.querySelector('.grade[data-g="' + g + '"]'); if (btn) btn.classList.add('suggested');
+      $('rvSuggest').textContent = 'O Claude sugere "' + btn.firstChild.textContent + '". Aperte Enter para aceitar.';
+    } catch (e) {
+      if (cur.card !== card) return;
+      $('rvProgress').textContent = aiError(e);
+      $('btnGradeAI').disabled = false; $('btnShow').disabled = false;
+    } finally { ctl = null; }
+  };
+  $('btnExplain').onclick = async function () {
+    var sample = await samplePromise; if (!sample) return;
+    var card = cur.card, box = $('rvExplain');
+    var c2 = new AbortController(); ctl = c2;
+    box.hidden = false; box.textContent = 'Pensando…'; this.disabled = true;
+    var ans = $('rvAnswer').value.trim();
+    try {
+      await sample('Explique de outro jeito, para um estudante brasileiro, o conceito deste flashcard. Use no máximo 4 frases curtas e um exemplo concreto do dia a dia. Sem títulos nem listas.' +
+        (ans ? ' O estudante respondeu: "' + ans.slice(0, 1000) + '". Se houver um equívoco, corrija com gentileza.' : '') +
+        '\n\nPergunta: ' + card.frente + '\nResposta: ' + card.verso,
+        { modelTier: 'quick', signal: c2.signal, onText: function (u) { if (cur.card === card) box.textContent = u.text; } });
+    } catch (e) { if (cur.card === card) box.textContent = (e && e.text) || aiError(e); }
+    finally { this.disabled = false; }
+  };
+  document.querySelector('.grades').addEventListener('click', function (e) { var b = e.target.closest('.grade'); if (b) grade(+b.dataset.g); });
+  function grade(q) {
+    if (!revealed || !cur) return;
+    var d = cur.deck, idx = d.cards.indexOf(cur.card);
+    var n = schedule(cur.card, q);
+    if (idx > -1) d.cards[idx] = n;
+    saveDeck(d);
+    var k = dayKey(today()); state.perfil.dias[k] = (state.perfil.dias[k] || 0) + 1;
+    if (store) store.savePerfil();
+    // errou: volta no fim desta sessão também
+    if (q < 3) queue.push({ deck: d, card: n });
+    else doneCount++;
+    pos++;
+    if (q >= 3 || pos < queue.length) showCard(); else finish();
+  }
+  function finish() {
+    $('flash').hidden = true; $('rvDone').hidden = false; $('rvTrack').style.width = '100%';
+    $('rvCount').textContent = '';
+    var t = today(), amanha = 0;
+    state.decks.forEach(function (d) { d.cards.forEach(function (c) { if (c.due === t + 1) amanha++; }); });
+    $('rvDoneText').textContent = sessionTotal + ' ' + (sessionTotal === 1 ? 'cartão revisado' : 'cartões revisados') + '. Amanhã: ' + amanha + '.';
+  }
+  function exitReview() { if (ctl) ctl.abort(); $('reviewView').hidden = true; $('home').hidden = false; cur = null; render(); window.scrollTo(0, 0); }
+  $('btnExit').onclick = exitReview; $('btnDoneBack').onclick = exitReview;
+  document.addEventListener('keydown', function (e) {
+    if ($('reviewView').hidden || !cur || $('flash').hidden) return;
+    var typing = e.target === $('rvAnswer');
+    if (!revealed) {
+      if (e.key === ' ' && !typing) { e.preventDefault(); reveal(); }
+      if (e.key === 'Enter' && typing && !e.shiftKey && !$('btnGradeAI').hidden) { e.preventDefault(); $('btnGradeAI').click(); }
+      return;
+    }
+    if (typing) return;
+    var map = { '1': 1, '2': 3, '3': 4, '4': 5 };
+    if (map[e.key]) { e.preventDefault(); grade(map[e.key]); }
+    if (e.key === 'Enter' && aiGrade) { e.preventDefault(); grade(aiGrade); }
+  });
+
+  /* ============ início ============ */
+  state.decks = [exampleDeck()];
+  selectSrc('texto');
+  render();
+  initStorage();
+})();
+</script>
+</body>
+</html>
