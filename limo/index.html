@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Limo Urbanista</title>
+<meta name="description" content="Um organismo sem cérebro projeta a malha de transporte entre as 27 capitais do Brasil. Simulação do Physarum polycephalum no navegador.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500;1,6..72,600&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F2F1EC;
+  --surface: #FBFAF7;
+  --surface-2: #E7E5DD;
+  --ink: #1C1B16;
+  --muted: #676353;
+  --line: #D8D4C8;
+  --accent: #876600;
+  --slime: #F0CB1F;
+  --barrier: #B4492F;
+  --good: #3D7A45;
+  --agar: #17130A;
+  --shadow: 0 1px 0 rgba(28,27,22,.04), 0 16px 36px -22px rgba(28,27,22,.45);
+  --display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #11110E;
+    --surface: #1A1A16;
+    --surface-2: #24231E;
+    --ink: #ECEAE1;
+    --muted: #A5A090;
+    --line: #302E27;
+    --accent: #EDC83A;
+    --barrier: #E07A5C;
+    --good: #7FC08A;
+    --shadow: 0 1px 0 rgba(0,0,0,.25), 0 18px 40px -20px rgba(0,0,0,.85);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #11110E;
+  --surface: #1A1A16;
+  --surface-2: #24231E;
+  --ink: #ECEAE1;
+  --muted: #A5A090;
+  --line: #302E27;
+  --accent: #EDC83A;
+  --barrier: #E07A5C;
+  --good: #7FC08A;
+  --shadow: 0 1px 0 rgba(0,0,0,.25), 0 18px 40px -20px rgba(0,0,0,.85);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 16px/1.55 var(--body);
+  padding-inline: 20px; padding-block: 0 64px;
+}
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1180px; margin-inline: auto; }
+
+.mast { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 20px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font: 600 21px/1 var(--display); letter-spacing: -.01em; }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.mast-note { font: 400 12px/1.3 var(--mono); color: var(--muted); text-align: right; }
+.mast-note i { font-family: var(--display); font-size: 14px; }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px 48px; align-items: end; padding-block: 44px 28px; }
+.eyebrow { grid-column: 1 / -1; margin: 0; font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 0; font: 500 clamp(36px, 5.4vw, 66px)/1.02 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+h1 em { font-style: italic; }
+h1 .hl { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--slime) 70%, transparent) 62%); padding-inline: 2px; }
+.lede { margin: 0; color: var(--muted); max-width: 44ch; }
+.lede b { color: var(--ink); font-weight: 600; }
+
+/* ---------- stage ---------- */
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.dish {
+  position: relative; border-radius: 14px; overflow: hidden;
+  background: #0C0A06; box-shadow: var(--shadow);
+  aspect-ratio: 1; width: 100%; max-width: 100%;
+}
+.dish canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.dish[data-tool="barrier"] canvas, .dish[data-tool="erase"] canvas { cursor: cell; }
+.dish-hud {
+  position: absolute; left: 14px; bottom: 12px; right: 14px; pointer-events: none;
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+  font: 400 11.5px/1.4 var(--mono); color: rgba(246,236,200,.72);
+  text-shadow: 0 1px 2px rgba(0,0,0,.8);
+}
+.dish-hud b { color: #F6E7A8; font-weight: 500; }
+.tip {
+  position: absolute; pointer-events: none; transform: translate(-50%, calc(-100% - 14px));
+  background: rgba(12,10,6,.92); color: #F6ECCB; border: 1px solid rgba(240,203,31,.35);
+  font: 500 12px/1.35 var(--body); padding: 6px 9px; border-radius: 6px; white-space: nowrap;
+}
+.tip small { display: block; font: 400 11px/1.3 var(--mono); color: rgba(246,236,203,.7); }
+
+.panel { display: grid; gap: 18px; }
+.group { display: grid; gap: 8px; }
+.glabel { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer; border-radius: 7px;
+  padding: 8px 6px; font: 600 13.5px/1.15 var(--body); color: var(--muted);
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.hint { margin: 0; font-size: 13px; color: var(--muted); }
+
+.checks { display: grid; gap: 6px; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+
+.slider { display: grid; gap: 4px; }
+.slider-top { display: flex; justify-content: space-between; font-size: 14px; }
+.slider-top output { font: 500 12.5px/1.6 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.slider input { width: 100%; accent-color: var(--accent); margin: 0; }
+
+.buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  appearance: none; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); padding: 10px 14px; font: 600 14px/1 var(--body); flex: 1 1 auto;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.btn:hover { border-color: var(--ink); }
+.btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { background: var(--surface); padding: 10px 12px; min-width: 0; }
+.stat dt { font: 500 10.5px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.stat dd { margin: 0; font: 500 19px/1.1 var(--display); font-variant-numeric: tabular-nums lining-nums; }
+.stat dd small { font: 400 11.5px/1 var(--mono); color: var(--muted); }
+.stat dd.ok { color: var(--good); }
+
+/* ---------- journal ---------- */
+.journal { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; }
+.log-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.log-card h2 { margin: 0 0 12px; font: 600 20px/1.2 var(--display); }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; max-height: 260px; overflow-y: auto; }
+.log li { display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 12px; padding: 7px 0; border-top: 1px dashed var(--line); font-size: 14.5px; }
+.log li:first-child { border-top: 0; }
+.log time { font: 400 12px/1.7 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.log li.key span { font-weight: 600; }
+.log li.warn span { color: var(--barrier); }
+.try { display: grid; gap: 10px; align-content: start; }
+.try h2 { margin: 0; font: 600 20px/1.2 var(--display); }
+.try ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); font-size: 14.5px; }
+.try b { color: var(--ink); font-weight: 600; }
+
+/* ---------- science ---------- */
+.science { margin-top: 72px; padding-top: 32px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
+.science h2 { margin: 0 0 16px; font: 500 clamp(28px, 3.4vw, 40px)/1.08 var(--display); letter-spacing: -.015em; text-wrap: balance; }
+.science p { margin: 0 0 14px; max-width: 60ch; }
+.science .muted { color: var(--muted); font-size: 15px; }
+.rules { margin: 0; padding: 0; list-style: none; counter-reset: r; display: grid; gap: 14px; }
+.rules li { counter-increment: r; display: grid; grid-template-columns: 36px minmax(0,1fr); gap: 12px; }
+.rules li::before { content: counter(r); font: 500 26px/1 var(--display); font-style: italic; color: var(--accent); }
+.rules b { display: block; font-weight: 600; }
+.rules span { color: var(--muted); font-size: 15px; }
+.refs { margin-top: 26px; font: 400 12.5px/1.6 var(--mono); color: var(--muted); }
+.refs p { margin: 0 0 6px; max-width: none; }
+
+@media (max-width: 920px) {
+  .stage, .journal, .science, .hero { grid-template-columns: minmax(0,1fr); }
+  .hero { padding-block: 32px 22px; }
+}
+@media (max-width: 460px) {
+  body { padding-inline: 16px; }
+  .mast-note { display: none; }
+  .log li { grid-template-columns: 74px minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M8 21 C12 17, 13 11, 16 9 M16 9 C19 12, 21 17, 25 19 M13 15 C16 16, 19 15, 21 16" fill="none" stroke="#E0B81A" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="8" cy="21" r="2.2" fill="currentColor"/><circle cx="16" cy="9" r="2.2" fill="currentColor"/><circle cx="25" cy="19" r="2.2" fill="currentColor"/>
+      </svg>
+      Limo Urbanista
+    </div>
+    <div class="mast-note"><i>Physarum polycephalum</i> · modelo de agentes de Jones (2010)</div>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">Experimento ao vivo</p>
+    <h1>Um organismo <em>sem cérebro</em> está projetando a <span class="hl">malha de transporte</span> do Brasil.</h1>
+    <p class="lede">Em 2010, pesquisadores japoneses puseram aveia sobre um mapa de Tóquio, um floco em cada cidade, e soltaram um limo amarelo. Em cerca de um dia ele teceu uma rede parecida com a ferrovia real. Aqui, <b id="heroAgents">6 mil</b> agentes fazem o mesmo entre as <b>27 capitais</b>: cobrem o país inteiro e em poucos segundos se retraem para os tubos que levam comida.</p>
+  </section>
+
+  <section class="stage">
+    <div class="dish" id="dish" data-tool="city">
+      <canvas id="view" aria-label="Simulação do limo crescendo entre as cidades"></canvas>
+      <div class="dish-hud" aria-hidden="true">
+        <span id="hudLeft">passo <b>0</b></span>
+        <span id="hudRight"></span>
+      </div>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+
+    <div class="panel">
+      <div class="group">
+        <span class="glabel" id="lblMap">Placa</span>
+        <div class="seg" role="group" aria-labelledby="lblMap">
+          <button type="button" data-map="brasil" aria-pressed="true">Brasil · 27 capitais</button>
+          <button type="button" data-map="petri" aria-pressed="false">Placa de Petri</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="glabel" id="lblTool">Ferramenta</span>
+        <div class="seg" role="group" aria-labelledby="lblTool" id="tools">
+          <button type="button" data-tool="city" aria-pressed="true">Comida</button>
+          <button type="button" data-tool="barrier" aria-pressed="false">Barreira</button>
+          <button type="button" data-tool="erase" aria-pressed="false">Apagar</button>
+        </div>
+        <p class="hint" id="toolHint">Clique para pôr um floco de aveia. Clique num ponto existente para tirá-lo.</p>
+      </div>
+
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="optPop" checked> Mais comida onde há mais gente</label>
+        <label class="check"><input type="checkbox" id="optMst"> Comparar com a árvore mínima</label>
+        <label class="check"><input type="checkbox" id="optLabels" checked> Siglas dos estados</label>
+      </div>
+
+      <div class="slider">
+        <div class="slider-top"><label for="sAgents">Agentes</label><output id="oAgents" for="sAgents">6 mil</output></div>
+        <input type="range" id="sAgents" min="2000" max="30000" step="500" value="6000">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="sAngle">Curiosidade</label><output id="oAngle" for="sAngle">22,5°</output></div>
+        <input type="range" id="sAngle" min="8" max="60" step="0.5" value="22.5">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="sReach">Alcance do olfato</label><output id="oReach" for="sReach">20 células</output></div>
+        <input type="range" id="sReach" min="5" max="32" step="1" value="20">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="sDecay">Esquecimento</label><output id="oDecay" for="sDecay">6%</output></div>
+        <input type="range" id="sDecay" min="2" max="25" step="1" value="6">
+      </div>
+
+      <div class="buttons">
+        <button type="button" class="btn btn-primary" id="btnPause">Pausar</button>
+        <button type="button" class="btn" id="btnReset">Recomeçar</button>
+      </div>
+
+      <dl class="stats">
+        <div class="stat"><dt>Capitais ligadas</dt><dd id="stConn">0 <small>/ 27</small></dd></div>
+        <div class="stat"><dt>Circuitos</dt><dd id="stLoops">0</dd></div>
+        <div class="stat"><dt>Árvore mínima</dt><dd id="stMst">—</dd></div>
+        <div class="stat"><dt>Velocidade</dt><dd id="stSpeed">— <small>passos/s</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="journal">
+    <div class="log-card">
+      <h2>Caderno de laboratório</h2>
+      <ol class="log" id="log" aria-live="polite"></ol>
+    </div>
+    <div class="try">
+      <h2>O que tentar</h2>
+      <ul>
+        <li><b>Corte a rede.</b> Com a Barreira, risque por cima de uma ligação forte, como Rio–São Paulo. Em poucos segundos surge um desvio.</li>
+        <li><b>Mude a curiosidade.</b> Ângulos baixos fazem trilhas retas e poucas. Ângulos altos fazem uma teia cheia de voltas.</li>
+        <li><b>Ligue a árvore mínima.</b> É a rede mais curta possível. O limo gasta um pouco mais de caminho e ganha circuitos, que são rotas alternativas.</li>
+        <li><b>Monte sua cidade</b> na Placa de Petri, pondo comida onde ficariam bairros.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="science" aria-labelledby="sciTitle">
+    <div>
+      <h2 id="sciTitle">Nenhum agente sabe onde ficam as cidades</h2>
+      <p>O <i>Physarum polycephalum</i> é uma única célula gigante, sem neurônios. Ele se espalha em tubos, reforça os que trazem comida e deixa secar os que não trazem. Dessa regra simples sai uma rede curta, eficiente e com rotas de reserva.</p>
+      <p class="muted">A simulação troca o limo por dezenas de milhares de partículas que deixam um rastro químico e seguem o rastro das outras. Os flocos de aveia (as capitais) soltam o mesmo rastro sem parar. Ninguém calcula rotas: a rede aparece sozinha.</p>
+      <div class="refs">
+        <p>Tero et al., <i>Rules for biologically inspired adaptive network design</i>, Science 327 (2010).</p>
+        <p>Jones, <i>Characteristics of pattern formation and evolution in approximations of Physarum transport networks</i>, Artificial Life 16 (2010).</p>
+        <p>Nakagaki, Yamada &amp; Tóth, <i>Maze-solving by an amoeboid organism</i>, Nature 407 (2000).</p>
+        <p>Contorno do Brasil: Natural Earth (domínio público). População das capitais: Censo 2022, valores arredondados.</p>
+      </div>
+    </div>
+    <ol class="rules">
+      <li><div><b>Cheirar</b><span>Cada agente tem três sensores à frente: esquerda, centro e direita, a 20 células de distância (o "alcance do olfato"). Só cabe um agente por célula.</span></div></li>
+      <li><div><b>Virar</b><span>Gira na direção do sensor que sente mais rastro. O ângulo entre sensores é a "curiosidade".</span></div></li>
+      <li><div><b>Andar e marcar</b><span>Dá um passo e deposita rastro na célula onde pisou. Barreiras e o mar não podem ser pisados.</span></div></li>
+      <li><div><b>Espalhar e evaporar</b><span>O rastro se difunde para as células vizinhas e perde uma fração a cada passo, o "esquecimento". Trilhas sem uso somem.</span></div></li>
+      <li><div><b>Alimentar</b><span>Cada capital solta rastro todo passo, mais onde há mais população. É isso que puxa a rede até ela.</span></div></li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= dados ================= */
+  // Natural Earth 110m (domínio público), [lon, lat]
+  var BRASIL = [[-57.63,-30.22],[-56.29,-28.85],[-55.16,-27.88],[-54.49,-27.47],[-53.65,-26.92],[-53.63,-26.12],[-54.13,-25.55],[-54.63,-25.74],[-54.43,-25.16],[-54.29,-24.57],[-54.29,-24.02],[-54.65,-23.84],[-55.03,-24.0],[-55.4,-23.96],[-55.52,-23.57],[-55.61,-22.66],[-55.8,-22.36],[-56.47,-22.09],[-56.88,-22.28],[-57.94,-22.09],[-57.87,-20.73],[-58.17,-20.18],[-57.85,-19.97],[-57.95,-19.4],[-57.68,-18.96],[-57.5,-18.17],[-57.73,-17.55],[-58.28,-17.27],[-58.39,-16.88],[-58.24,-16.3],[-60.16,-16.26],[-60.54,-15.09],[-60.25,-15.08],[-60.26,-14.65],[-60.46,-14.35],[-60.5,-13.78],[-61.08,-13.48],[-61.71,-13.49],[-62.13,-13.2],[-62.8,-13.0],[-63.2,-12.63],[-64.32,-12.46],[-65.4,-11.57],[-65.32,-10.9],[-65.44,-10.51],[-65.34,-9.76],[-66.65,-9.93],[-67.17,-10.31],[-68.05,-10.71],[-68.27,-11.01],[-68.79,-11.04],[-69.53,-10.95],[-70.09,-11.12],[-70.55,-11.01],[-70.48,-9.49],[-71.3,-10.08],[-72.18,-10.05],[-72.56,-9.52],[-73.23,-9.46],[-73.02,-9.03],[-73.57,-8.42],[-73.99,-7.52],[-73.72,-7.34],[-73.72,-6.92],[-73.12,-6.63],[-73.22,-6.09],[-72.96,-5.74],[-72.89,-5.27],[-71.75,-4.59],[-70.93,-4.4],[-70.79,-4.25],[-69.89,-4.3],[-69.44,-1.56],[-69.42,-1.12],[-69.58,-0.55],[-70.02,-0.19],[-70.02,0.54],[-69.45,0.71],[-69.25,0.6],[-69.22,0.99],[-69.8,1.09],[-69.82,1.71],[-67.87,1.69],[-67.54,2.04],[-67.26,1.72],[-67.07,1.13],[-66.88,1.25],[-66.33,0.72],[-65.55,0.79],[-65.35,1.1],[-64.61,1.33],[-64.2,1.49],[-64.08,1.92],[-63.37,2.2],[-63.42,2.41],[-64.27,2.5],[-64.41,3.13],[-64.37,3.8],[-64.82,4.06],[-64.63,4.15],[-63.89,4.02],[-63.09,3.77],[-62.8,4.01],[-62.09,4.16],[-60.97,4.54],[-60.6,4.92],[-60.73,5.2],[-60.21,5.24],[-59.98,5.01],[-60.11,4.57],[-59.77,4.42],[-59.54,3.96],[-59.82,3.61],[-59.97,2.76],[-59.72,2.25],[-59.65,1.79],[-59.03,1.32],[-58.54,1.27],[-58.43,1.46],[-58.11,1.51],[-57.66,1.68],[-57.34,1.95],[-56.78,1.86],[-56.54,1.9],[-56.0,1.82],[-55.91,2.02],[-56.07,2.22],[-55.97,2.51],[-55.57,2.42],[-55.1,2.52],[-54.52,2.31],[-54.09,2.11],[-53.78,2.38],[-53.55,2.33],[-53.42,2.05],[-52.94,2.12],[-52.56,2.5],[-52.25,3.24],[-51.66,4.16],[-51.32,4.2],[-51.07,3.65],[-50.51,1.9],[-49.97,1.74],[-49.95,1.05],[-50.7,0.22],[-50.39,-0.08],[-48.62,-0.24],[-48.58,-1.24],[-47.82,-0.58],[-46.57,-0.94],[-44.91,-1.55],[-44.42,-2.14],[-44.58,-2.69],[-43.42,-2.38],[-41.47,-2.91],[-39.98,-2.87],[-38.5,-3.7],[-37.22,-4.82],[-36.45,-5.11],[-35.6,-5.15],[-35.24,-5.46],[-34.9,-6.74],[-34.73,-7.34],[-35.13,-9.0],[-35.64,-9.65],[-37.05,-11.04],[-37.68,-12.17],[-38.42,-13.04],[-38.67,-13.06],[-38.95,-13.79],[-38.88,-15.67],[-39.16,-17.21],[-39.27,-17.87],[-39.58,-18.26],[-39.76,-19.6],[-40.77,-20.9],[-40.94,-21.94],[-41.75,-22.37],[-41.99,-22.97],[-43.07,-22.97],[-44.65,-23.35],[-45.35,-23.8],[-46.47,-24.09],[-47.65,-24.89],[-48.5,-25.88],[-48.64,-26.62],[-48.47,-27.18],[-48.66,-28.19],[-48.89,-28.67],[-49.59,-29.22],[-50.7,-30.98],[-51.58,-31.78],[-52.26,-32.25],[-52.71,-33.2],[-53.37,-33.77],[-53.65,-33.2],[-53.21,-32.73],[-53.79,-32.05],[-54.57,-31.49],[-55.6,-30.85],[-55.97,-30.88],[-56.98,-30.11],[-57.63,-30.22]];
+
+  // Capitais: UF, nome, lat, lon, população (milhares, Censo 2022 arredondado)
+  var CAPITAIS = [
+    ['AC','Rio Branco',-9.97,-67.81,364], ['AL','Maceió',-9.67,-35.74,957], ['AP','Macapá',0.03,-51.07,442],
+    ['AM','Manaus',-3.12,-60.02,2063], ['BA','Salvador',-12.97,-38.50,2418], ['CE','Fortaleza',-3.73,-38.52,2428],
+    ['DF','Brasília',-15.79,-47.88,2817], ['ES','Vitória',-20.32,-40.34,322], ['GO','Goiânia',-16.68,-49.25,1437],
+    ['MA','São Luís',-2.53,-44.30,1037], ['MT','Cuiabá',-15.60,-56.10,650], ['MS','Campo Grande',-20.47,-54.62,898],
+    ['MG','Belo Horizonte',-19.92,-43.94,2316], ['PA','Belém',-1.46,-48.49,1303], ['PB','João Pessoa',-7.12,-34.86,833],
+    ['PR','Curitiba',-25.43,-49.27,1773], ['PE','Recife',-8.05,-34.88,1488], ['PI','Teresina',-5.09,-42.80,866],
+    ['RJ','Rio de Janeiro',-22.91,-43.17,6211], ['RN','Natal',-5.79,-35.21,751], ['RS','Porto Alegre',-30.03,-51.23,1332],
+    ['RO','Porto Velho',-8.76,-63.90,460], ['RR','Boa Vista',2.82,-60.67,413], ['SC','Florianópolis',-27.59,-48.55,537],
+    ['SP','São Paulo',-23.55,-46.63,11451], ['SE','Aracaju',-10.91,-37.07,602], ['TO','Palmas',-10.18,-48.33,302]
+  ];
+
+  /* ================= estado ================= */
+  var N = 520, W = N, H = N, SIZE = W * H;
+  var trail = new Float32Array(SIZE), tmp = new Float32Array(SIZE);
+  var base = new Uint8Array(SIZE);   // domínio (país ou placa)
+  var mask = new Uint8Array(SIZE);   // domínio menos barreiras
+  var occ = new Uint8Array(SIZE);    // no máximo um agente por célula (regra de Jones)
+  var MAXA = 70000;
+  var ax = new Float32Array(MAXA), ay = new Float32Array(MAXA), ah = new Float32Array(MAXA);
+  var nA = 6000;
+  var P = { sa: 22.5 * Math.PI / 180, so: 20, dep: 5, decay: 0.06, food: 250 };
+  var TAU = Math.PI * 2;
+  var mapName = 'brasil', cities = [], outline = null, kmPerCell = 1, unit = 'km';
+  var tool = 'city', running = true, steps = 0;
+  var showMst = false, showLabels = true, popWeight = true;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = new Intl.NumberFormat('pt-BR');
+
+  /* ================= geometria ================= */
+  function projectBrasil() {
+    var lonMin = 1e9, lonMax = -1e9, latMin = 1e9, latMax = -1e9;
+    BRASIL.forEach(function (p) { lonMin = Math.min(lonMin, p[0]); lonMax = Math.max(lonMax, p[0]); latMin = Math.min(latMin, p[1]); latMax = Math.max(latMax, p[1]); });
+    var k = Math.cos((latMin + latMax) / 2 * Math.PI / 180);
+    var spanX = (lonMax - lonMin) * k, spanY = latMax - latMin, m = 10;
+    var s = (N - 2 * m) / Math.max(spanX, spanY);
+    var ox = (N - spanX * s) / 2, oy = (N - spanY * s) / 2;
+    kmPerCell = 111.2 / s;
+    return function (lon, lat) { return [ox + (lon - lonMin) * k * s, oy + (latMax - lat) * s]; };
+  }
+  function fillPolygon(pts) {
+    for (var y = 0; y < H; y++) {
+      var yc = y + 0.5, xs = [];
+      for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        var a = pts[i], b = pts[j];
+        if ((a[1] > yc) !== (b[1] > yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
+      }
+      xs.sort(function (p, q) { return p - q; });
+      for (var q = 0; q + 1 < xs.length; q += 2) {
+        var x0 = Math.max(0, Math.ceil(xs[q] - 0.5)), x1 = Math.min(W - 1, Math.floor(xs[q + 1] - 0.5));
+        for (var x = x0; x <= x1; x++) base[y * W + x] = 1;
+      }
+    }
+  }
+  function disk(cx, cy, r, fn) {
+    var r2 = r * r;
+    for (var dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) for (var dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+      if (dx * dx + dy * dy > r2) continue;
+      var x = Math.round(cx) + dx, y = Math.round(cy) + dy;
+      if (x >= 0 && y >= 0 && x < W && y < H) fn(y * W + x, x, y);
+    }
+  }
+
+  function buildMap(name) {
+    mapName = name;
+    base.fill(0); trail.fill(0); tmp.fill(0);
+    cities = [];
+    if (name === 'brasil') {
+      var proj = projectBrasil(); unit = 'km';
+      outline = BRASIL.map(function (p) { return proj(p[0], p[1]); });
+      fillPolygon(outline);
+      var maxPop = 11451;
+      CAPITAIS.forEach(function (c) {
+        var xy = proj(c[3], c[2]);
+        cities.push({ uf: c[0], name: c[1], x: xy[0], y: xy[1], lat: c[2], lon: c[3], pop: c[4], w: 0.55 + 0.45 * Math.sqrt(c[4] / maxPop) });
+        disk(xy[0], xy[1], 4, function (i) { base[i] = 1; }); // capitais costeiras ficam dentro
+      });
+    } else {
+      var R = N / 2 - 8; outline = null;
+      kmPerCell = 90 / (2 * R); unit = 'mm'; // placa de Petri padrão: 90 mm
+      disk(N / 2, N / 2, R, function (i) { base[i] = 1; });
+      // 11 flocos bem espaçados
+      var tries = 0;
+      while (cities.length < 11 && tries++ < 2000) {
+        var a = Math.random() * TAU, r = Math.sqrt(Math.random()) * (R - 26);
+        var x = N / 2 + Math.cos(a) * r, y = N / 2 + Math.sin(a) * r;
+        if (cities.every(function (c) { return Math.hypot(c.x - x, c.y - y) > 62; }))
+          cities.push({ uf: '', name: 'Floco ' + (cities.length + 1), x: x, y: y, pop: 0, w: 0.8 });
+      }
+    }
+    mask.set(base);
+    seedAgents();
+    steps = 0; conn = { count: 0, loops: 0, ids: [] }; milestones = {};
+    mstCache = null;
+    updateLabels();
+  }
+
+  function seedAgents() {
+    // O limo começa cobrindo o território inteiro e vai se retraindo para as rotas que alimentam.
+    occ.fill(0);
+    for (var k = 0; k < nA; k++) placeAgent(k);
+  }
+  function placeAgent(k) {
+    for (;;) {
+      var i = (Math.random() * SIZE) | 0;
+      if (mask[i] && !occ[i]) { occ[i] = 1; ax[k] = i % W + Math.random(); ay[k] = ((i / W) | 0) + Math.random(); ah[k] = Math.random() * TAU; return; }
+    }
+  }
+  function setAgents(n) {
+    var k;
+    if (n > nA) for (k = nA; k < n; k++) placeAgent(k);
+    else for (k = n; k < nA; k++) occ[(ay[k] | 0) * W + (ax[k] | 0)] = 0;
+    nA = n;
+  }
+
+  /* ================= simulação ================= */
+  var COS = new Float32Array(4096), SIN = new Float32Array(4096);
+  for (var q = 0; q < 4096; q++) { COS[q] = Math.cos(q / 4096 * TAU); SIN[q] = Math.sin(q / 4096 * TAU); }
+  var ANG = 4096 / TAU;
+
+  function step() {
+    var i, k;
+    // comida
+    for (var c = 0; c < cities.length; c++) {
+      var ct = cities[c], amt = P.food * (popWeight ? ct.w * 1.35 : 1);
+      disk(ct.x, ct.y, 3, function (idx) { if (mask[idx]) trail[idx] += amt; });
+    }
+    var sa = P.sa * ANG, ra = sa * 2, so = P.so, dep = P.dep, n = nA;
+    for (k = 0; k < n; k++) {
+      var x = ax[k], y = ay[k], h = ah[k] * ANG;
+      var hc = h & 4095, hl = (h - sa) & 4095, hr = (h + sa) & 4095;
+      var fc = sense(x + COS[hc] * so, y + SIN[hc] * so);
+      var fl = sense(x + COS[hl] * so, y + SIN[hl] * so);
+      var fr = sense(x + COS[hr] * so, y + SIN[hr] * so);
+      if (fc > fl && fc > fr) { /* segue */ }
+      else if (fc < fl && fc < fr) h += Math.random() < 0.5 ? -ra : ra;
+      else if (fl < fr) h += ra;
+      else if (fr < fl) h -= ra;
+      var hi = h & 4095;
+      var nx = x + COS[hi], ny = y + SIN[hi];
+      var ix = nx | 0, iy = ny | 0, old = (y | 0) * W + (x | 0);
+      if (nx >= 0 && ny >= 0 && ix < W && iy < H && mask[i = iy * W + ix] && (i === old || !occ[i])) {
+        occ[old] = 0; occ[i] = 1;
+        ax[k] = nx; ay[k] = ny; trail[i] += dep; ah[k] = hi / ANG;
+      } else ah[k] = Math.random() * TAU;
+    }
+    // difusão 3x3 + evaporação
+    var keep = (1 - P.decay) / 9;
+    for (var yy = 1; yy < H - 1; yy++) {
+      var row = yy * W;
+      for (var xx = 1; xx < W - 1; xx++) {
+        i = row + xx;
+        if (!mask[i]) { tmp[i] = 0; continue; }
+        tmp[i] = (trail[i - W - 1] + trail[i - W] + trail[i - W + 1] + trail[i - 1] + trail[i] + trail[i + 1] + trail[i + W - 1] + trail[i + W] + trail[i + W + 1]) * keep;
+      }
+    }
+    var sw = trail; trail = tmp; tmp = sw;
+    steps++;
+  }
+  function sense(x, y) {
+    if (x < 0 || y < 0 || x >= W || y >= H) return -1e9;
+    var i = (y | 0) * W + (x | 0);
+    return mask[i] ? trail[i] : -1e9;
+  }
+
+  /* ================= rede: conexões e circuitos ================= */
+  var THR = 2.5, WARMUP = 1200;
+  var label = new Int32Array(SIZE), queue = new Int32Array(SIZE);
+  var conn = { count: 0, loops: 0, ids: [] };
+  function analyze() {
+    label.fill(0);
+    var comp = 0, qh, qt, i, j;
+    // componentes da rede (rastro acima do limiar)
+    for (i = 0; i < SIZE; i++) {
+      if (label[i] || !mask[i] || trail[i] < THR) continue;
+      comp++; label[i] = comp; qh = 0; qt = 0; queue[qt++] = i;
+      while (qh < qt) {
+        j = queue[qh++]; var x = j % W, y = (j / W) | 0;
+        // vizinhança de 8 para a rede, de 4 para o fundo: assim um tubo diagonal fecha um circuito
+        if (x > 0 && y > 0 && x < W - 1 && y < H - 1) {
+          visitNet(j - 1, comp); visitNet(j + 1, comp); visitNet(j - W, comp); visitNet(j + W, comp);
+          visitNet(j - W - 1, comp); visitNet(j - W + 1, comp); visitNet(j + W - 1, comp); visitNet(j + W + 1, comp);
+        }
+      }
+    }
+    function visitNet(n, c) { if (!label[n] && mask[n] && trail[n] >= THR) { label[n] = c; queue[qt++] = n; } }
+    // qual componente cada cidade toca
+    var tally = {}, cityComp = cities.map(function (ct) {
+      var found = 0;
+      disk(ct.x, ct.y, 4, function (idx) { if (!found && label[idx] > 0) found = label[idx]; });
+      if (found) tally[found] = (tally[found] || 0) + 1;
+      return found;
+    });
+    var best = 0, bestN = 0;
+    for (var key in tally) if (tally[key] > bestN) { bestN = tally[key]; best = +key; }
+    conn.count = bestN >= 2 ? bestN : 0;
+    conn.ids = cityComp.map(function (c) { return best && c === best && bestN >= 2; });
+    // circuitos = buracos do fundo cercados pela rede (sem tocar a borda do domínio)
+    var loops = 0;
+    for (i = 0; i < SIZE; i++) {
+      if (label[i] !== 0 || !base[i]) continue;
+      if (mask[i] && trail[i] >= THR) continue;
+      var size = 0, open = false; label[i] = -1; qh = 0; qt = 0; queue[qt++] = i;
+      while (qh < qt) {
+        j = queue[qh++]; size++;
+        var x2 = j % W, y2 = (j / W) | 0;
+        if (x2 === 0 || y2 === 0 || x2 === W - 1 || y2 === H - 1) { open = true; continue; }
+        var nb = [j - 1, j + 1, j - W, j + W];
+        for (var t = 0; t < 4; t++) {
+          var m = nb[t];
+          if (!base[m]) { open = true; continue; }
+          if (label[m] !== 0) continue;
+          if (mask[m] && trail[m] >= THR) continue;
+          label[m] = -1; queue[qt++] = m;
+        }
+      }
+      if (!open && size >= 30) loops++;
+    }
+    conn.loops = loops;
+  }
+
+  /* ================= árvore mínima ================= */
+  var mstCache = null;
+  function haversine(a, b) {
+    var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLon = (b.lon - a.lon) * Math.PI / 180;
+    var s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
+  function dist(a, b) { return a.lat != null && b.lat != null ? haversine(a, b) : Math.hypot(a.x - b.x, a.y - b.y) * kmPerCell; }
+  function mst() {
+    if (mstCache) return mstCache;
+    var n = cities.length, inT = new Array(n).fill(false), d = new Array(n).fill(Infinity), par = new Array(n).fill(-1), edges = [], total = 0;
+    if (!n) return (mstCache = { edges: [], total: 0 });
+    d[0] = 0;
+    for (var it = 0; it < n; it++) {
+      var u = -1;
+      for (var v = 0; v < n; v++) if (!inT[v] && (u < 0 || d[v] < d[u])) u = v;
+      inT[u] = true;
+      if (par[u] >= 0) { edges.push([par[u], u]); total += d[u]; }
+      for (v = 0; v < n; v++) if (!inT[v]) { var dd = dist(cities[u], cities[v]); if (dd < d[v]) { d[v] = dd; par[v] = u; } }
+    }
+    return (mstCache = { edges: edges, total: total });
+  }
+
+  /* ================= desenho ================= */
+  var view = $('view'), vctx = view.getContext('2d');
+  var off = document.createElement('canvas'); off.width = W; off.height = H;
+  var octx = off.getContext('2d'), img = octx.createImageData(W, H), px = new Uint32Array(img.data.buffer);
+  function rgba(r, g, b, a) { return (a << 24) | (b << 16) | (g << 8) | r; }
+  var LUT = new Uint32Array(256);
+  (function () {
+    // ágar escuro → ocre → amarelo do limo → quase branco
+    var stops = [[0, 26, 21, 10], [0.18, 74, 52, 12], [0.45, 190, 140, 18], [0.72, 240, 203, 31], [1, 255, 246, 196]];
+    for (var i = 0; i < 256; i++) {
+      var t = i / 255, s = 0;
+      while (s < stops.length - 2 && t > stops[s + 1][0]) s++;
+      var a = stops[s], b = stops[s + 1], f = (t - a[0]) / (b[0] - a[0]);
+      LUT[i] = rgba(Math.round(a[1] + (b[1] - a[1]) * f), Math.round(a[2] + (b[2] - a[2]) * f), Math.round(a[3] + (b[3] - a[3]) * f), 255);
+    }
+  })();
+  var OUTSIDE = rgba(12, 10, 6, 255), BAR1 = rgba(110, 42, 26, 255), BAR2 = rgba(52, 22, 14, 255);
+  function paint() {
+    for (var i = 0; i < SIZE; i++) {
+      if (mask[i]) {
+        // curva suave: realça tubos finos sem estourar os grossos
+        var v = trail[i] <= 0 ? 0 : 255 * (1 - Math.exp(-trail[i] / 12));
+        px[i] = LUT[v | 0];
+      } else if (base[i]) px[i] = (((i % W) + ((i / W) | 0)) % 6) < 2 ? BAR1 : BAR2;
+      else px[i] = OUTSIDE;
+    }
+    octx.putImageData(img, 0, 0);
+
+    var cw = view.width, ch = view.height, s = cw / W, dpr = view._dpr || 1;
+    vctx.imageSmoothingEnabled = true; vctx.imageSmoothingQuality = 'high';
+    vctx.drawImage(off, 0, 0, cw, ch);
+
+    if (outline) {
+      vctx.beginPath();
+      outline.forEach(function (p, n) { n ? vctx.lineTo(p[0] * s, p[1] * s) : vctx.moveTo(p[0] * s, p[1] * s); });
+      vctx.closePath(); vctx.strokeStyle = 'rgba(246,226,150,.28)'; vctx.lineWidth = 1 * dpr; vctx.stroke();
+    } else {
+      vctx.beginPath(); vctx.arc(cw / 2, ch / 2, (N / 2 - 8) * s, 0, TAU);
+      vctx.strokeStyle = 'rgba(246,226,150,.28)'; vctx.lineWidth = 1.5 * dpr; vctx.stroke();
+    }
+
+    if (showMst) {
+      var m = mst();
+      vctx.save(); vctx.setLineDash([5 * dpr, 5 * dpr]); vctx.lineWidth = 1.6 * dpr; vctx.strokeStyle = 'rgba(140,220,255,.85)';
+      m.edges.forEach(function (e) { var a = cities[e[0]], b = cities[e[1]]; vctx.beginPath(); vctx.moveTo(a.x * s, a.y * s); vctx.lineTo(b.x * s, b.y * s); vctx.stroke(); });
+      vctx.restore();
+    }
+
+    vctx.textAlign = 'center'; vctx.textBaseline = 'middle';
+    vctx.font = '600 ' + Math.round(10.5 * dpr) + 'px Figtree, system-ui, sans-serif';
+    cities.forEach(function (c, n) {
+      var r = (2.6 + 2.6 * c.w) * dpr, on = conn.ids[n], X = c.x * s, Y = c.y * s;
+      vctx.beginPath(); vctx.arc(X, Y, r, 0, TAU);
+      vctx.fillStyle = on ? '#FFF6D0' : 'rgba(12,10,6,.85)'; vctx.fill();
+      vctx.lineWidth = 1.6 * dpr; vctx.strokeStyle = on ? '#1A1408' : '#F0CB1F'; vctx.stroke();
+      if (hover === n) { vctx.beginPath(); vctx.arc(X, Y, r + 5 * dpr, 0, TAU); vctx.strokeStyle = 'rgba(255,246,208,.8)'; vctx.stroke(); }
+      if (showLabels && c.uf) {
+        var ly = Y - r - 8 * dpr;
+        vctx.lineWidth = 3 * dpr; vctx.strokeStyle = 'rgba(12,10,6,.85)'; vctx.strokeText(c.uf, X, ly);
+        vctx.fillStyle = on ? '#FFF6D0' : 'rgba(246,226,150,.75)'; vctx.fillText(c.uf, X, ly);
+      }
+    });
+  }
+  function resize() {
+    var r = view.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    var w = Math.max(200, Math.round(r.width * dpr));
+    if (view.width !== w) { view.width = w; view.height = w; view._dpr = dpr; }
+  }
+  window.addEventListener('resize', function () { resize(); paint(); });
+
+  /* ================= loop ================= */
+  var frame = 0, budget = 11, spf = 2, rateSteps = 0, rateT = performance.now(), sps = 0;
+  function loop() {
+    if (running) {
+      var t0 = performance.now(), done = 0;
+      while (done < spf) { step(); done++; }
+      var dt = performance.now() - t0;
+      // ajusta passos por quadro para caber no orçamento
+      if (dt < budget * 0.7 && spf < 12) spf++; else if (dt > budget * 1.3 && spf > 1) spf--;
+      rateSteps += done;
+      frame++;
+      if (frame % 20 === 0) { analyze(); onAnalyze(); }
+    }
+    var now = performance.now();
+    if (now - rateT > 1000) { sps = rateSteps * 1000 / (now - rateT); rateSteps = 0; rateT = now; $('stSpeed').innerHTML = (running ? fmt.format(Math.round(sps)) : '0') + ' <small>passos/s</small>'; }
+    paint();
+    $('hudLeft').innerHTML = 'passo <b>' + fmt.format(steps) + '</b>';
+    requestAnimationFrame(loop);
+  }
+
+  /* ================= caderno ================= */
+  var milestones = {}, breakAt = null, stable = 0, cutRef = null, cutAt = 0;
+  function log(text, cls) {
+    var li = document.createElement('li'); if (cls) li.className = cls;
+    li.innerHTML = '<time></time><span></span>';
+    li.firstChild.textContent = 'passo ' + fmt.format(steps);
+    li.lastChild.textContent = text;
+    var ol = $('log'); ol.insertBefore(li, ol.firstChild);
+    while (ol.children.length > 40) ol.removeChild(ol.lastChild);
+  }
+  function onAnalyze() {
+    var total = cities.length;
+    $('stConn').innerHTML = conn.count + ' <small>/ ' + total + '</small>';
+    $('stConn').className = conn.count === total && total > 1 ? 'ok' : '';
+    $('stLoops').textContent = fmt.format(conn.loops);
+    if (steps < WARMUP) {
+      if (!milestones.cover && steps > 150) { milestones.cover = true; log('O limo cobriu o território. Agora começa a abandonar o que não leva a comida.'); }
+      return;
+    }
+    if (!milestones.prune) { milestones.prune = true; milestones.loops0 = conn.loops; log('Rede enxugada: sobraram ' + conn.loops + ' circuitos.'); }
+    var allNow = conn.count === total && total > 1;
+    stable = allNow ? stable + 1 : 0;
+    if (allNow && stable >= 3) {
+      if (!milestones.all) { milestones.all = true; log('Todos os ' + total + ' pontos ligados numa rede só.', 'key'); }
+      if (breakAt != null) { log('Rede refeita ' + fmt.format(steps - breakAt) + ' passos depois do corte.', 'key'); breakAt = null; }
+    }
+    // efeito de um corte: compara com a rede de antes da barreira
+    if (cutRef != null) {
+      if (breakAt == null && conn.count < cutRef) { breakAt = steps; log('A barreira partiu a rede: ' + (cutRef - conn.count) + ' ponto(s) ficaram de fora.', 'warn'); }
+      else if (breakAt != null && conn.count >= cutRef) { log('Rede refeita por outro caminho, ' + fmt.format(steps - breakAt) + ' passos depois do corte.', 'key'); cutRef = null; breakAt = null; }
+      else if (breakAt == null && steps - cutAt > 400) { log('O corte não isolou ninguém: já havia rota alternativa.', 'key'); cutRef = null; }
+    }
+  }
+
+  /* ================= interação ================= */
+  var hover = -1, drawing = false, barrierLogged = false;
+  function gridPos(e) {
+    var r = view.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H, cx: e.clientX - r.left, cy: e.clientY - r.top, s: r.width / W };
+  }
+  function cityAt(p) {
+    var best = -1, bd = 1e9;
+    cities.forEach(function (c, n) { var d = Math.hypot(c.x - p.x, c.y - p.y) * p.s; if (d < 12 && d < bd) { bd = d; best = n; } });
+    return best;
+  }
+  function brush(p, erase) {
+    disk(p.x, p.y, 4.5, function (i) {
+      if (!base[i]) return;
+      if (erase) mask[i] = 1; else { mask[i] = 0; trail[i] = 0; }
+    });
+    if (!erase) {
+      // agentes presos dentro da barreira renascem em outro lugar
+      for (var k = 0; k < nA; k++) { var i = (ay[k] | 0) * W + (ax[k] | 0); if (!mask[i]) { occ[i] = 0; placeAgent(k); } }
+    }
+  }
+  view.addEventListener('pointerdown', function (e) {
+    var p = gridPos(e);
+    if (tool === 'city') {
+      var n = cityAt(p);
+      if (n >= 0) { var c = cities.splice(n, 1)[0]; log('Comida retirada de ' + c.name + '.'); hover = -1; }
+      else {
+        var i = (p.y | 0) * W + (p.x | 0);
+        if (!mask[i]) { return; }
+        var nm = mapName === 'brasil' ? 'Ponto novo ' + (cities.filter(function (c) { return !c.uf; }).length + 1) : 'Floco ' + (cities.length + 1);
+        cities.push({ uf: '', name: nm, x: p.x, y: p.y, pop: 0, w: 0.75 });
+        log(nm + ' adicionado.');
+      }
+      mstCache = null; milestones.all = cities.length > 0 && conn.count === cities.length; updateLabels(); analyze(); onAnalyze();
+      return;
+    }
+    drawing = true; view.setPointerCapture(e.pointerId);
+    brush(p, tool === 'erase');
+    if (tool === 'barrier' && !barrierLogged) {
+      barrierLogged = true; log('Barreira desenhada.');
+      if (cutRef == null && steps >= WARMUP) { cutRef = conn.count; cutAt = steps; breakAt = null; }
+    }
+  });
+  view.addEventListener('pointermove', function (e) {
+    var p = gridPos(e);
+    if (drawing) { brush(p, tool === 'erase'); return; }
+    hover = cityAt(p);
+    var tip = $('tip');
+    if (hover >= 0) {
+      var c = cities[hover];
+      tip.innerHTML = '';
+      tip.appendChild(document.createTextNode(c.name));
+      var sm = document.createElement('small');
+      sm.textContent = (c.pop ? fmt.format(c.pop * 1000) + ' hab. · ' : '') + (conn.ids[hover] ? 'ligada à rede' : 'ainda isolada');
+      tip.appendChild(sm);
+      tip.style.left = (c.x * p.s) + 'px'; tip.style.top = (c.y * p.s) + 'px'; tip.hidden = false;
+    } else tip.hidden = true;
+  });
+  function endDraw() { drawing = false; barrierLogged = false; }
+  view.addEventListener('pointerup', endDraw);
+  view.addEventListener('pointercancel', endDraw);
+  view.addEventListener('pointerleave', function () { if (!drawing) { hover = -1; $('tip').hidden = true; } });
+
+  var HINTS = {
+    city: 'Clique para pôr um floco de aveia. Clique num ponto existente para tirá-lo.',
+    barrier: 'Arraste para desenhar um obstáculo: uma serra, um rio, um desastre. O limo não atravessa.',
+    erase: 'Arraste sobre uma barreira para removê-la.'
+  };
+  $('tools').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    tool = b.dataset.tool; $('dish').dataset.tool = tool;
+    [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    $('toolHint').textContent = HINTS[tool];
+  });
+  document.querySelectorAll('[data-map]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('[data-map]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      reset(b.dataset.map);
+    });
+  });
+  function updateLabels() {
+    var m = mst();
+    $('stMst').innerHTML = cities.length > 1 ? fmt.format(Math.round(m.total)) + ' <small>' + unit + '</small>' : '—';
+    $('optPop').disabled = mapName !== 'brasil'; $('optLabels').disabled = mapName !== 'brasil';
+    $('hudRight').textContent = mapName === 'brasil' ? '1 célula ≈ ' + Math.round(kmPerCell) + ' km' : 'placa de Petri de 9 cm';
+  }
+  $('optMst').onchange = function () { showMst = this.checked; if (showMst) log('Árvore mínima sobreposta: ' + fmt.format(Math.round(mst().total)) + ' ' + unit + ' de trilho no total.'); };
+  $('optLabels').onchange = function () { showLabels = this.checked; };
+  $('optPop').onchange = function () { popWeight = this.checked; log(popWeight ? 'Comida proporcional à população.' : 'Mesma comida em todos os pontos.'); };
+
+  function agentsLabel(n) { return fmt.format(Math.round(n / 1000)) + ' mil'; }
+  $('sAgents').oninput = function () { setAgents(+this.value); $('oAgents').textContent = agentsLabel(nA); $('heroAgents').textContent = agentsLabel(nA); };
+  $('sAngle').oninput = function () { P.sa = +this.value * Math.PI / 180; $('oAngle').textContent = String(+this.value).replace('.', ',') + '°'; };
+  $('sReach').oninput = function () { P.so = +this.value; $('oReach').textContent = this.value + ' células'; };
+  $('sReach').onchange = function () { log('Alcance do olfato: ' + this.value + ' células (' + fmt.format(Math.round(this.value * kmPerCell)) + ' ' + unit + ').'); };
+  $('sDecay').oninput = function () { P.decay = +this.value / 100; $('oDecay').textContent = this.value + '%'; };
+  $('sAngle').onchange = function () { log('Curiosidade ajustada para ' + $('oAngle').textContent + '.'); };
+  $('sDecay').onchange = function () { log('Esquecimento ajustado para ' + this.value + '% por passo.'); };
+
+  $('btnPause').onclick = function () { running = !running; this.textContent = running ? 'Pausar' : 'Continuar'; };
+  $('btnReset').onclick = function () { reset(mapName); };
+
+  function reset(name) {
+    $('log').innerHTML = '';
+    buildMap(name);
+    breakAt = null; cutRef = null; stable = 0;
+    log(name === 'brasil' ? 'Limo semeado nas 27 capitais. Cada uma recebe aveia todo passo.' : 'Placa de Petri com ' + cities.length + ' flocos de aveia.', 'key');
+    running = true; $('btnPause').textContent = 'Pausar';
+  }
+
+  /* ================= início ================= */
+  resize();
+  reset('brasil');
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

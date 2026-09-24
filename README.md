@@ -163,3 +163,28 @@ Detalhes: o cálculo roda num Web Worker, o progresso é salvo no
 `localStorage` a cada ~200 ms (pode pausar ou fechar a aba), e a cápsula
 inteira cabe num código de texto `CAPSULA1.…` — ou num link `…/capsula/#CAPSULA1.…`.
 Tem uma cápsula de exemplo de ~15 s embutida para ver o processo.
+
+---
+
+# Limo Urbanista — `limo/`
+
+Um organismo sem cérebro projeta a malha de transporte entre as **27 capitais
+do Brasil**, ao vivo no navegador. É uma simulação do limo *Physarum
+polycephalum*, o mesmo que em 2010 reproduziu a rede ferroviária de Tóquio
+(Tero et al., *Science*).
+
+Abra `limo/index.html` (ou `http://localhost:8000/limo/`).
+
+- **Modelo de agentes de Jones (2010):** 6 mil partículas com três sensores
+  cada. Viram para onde sentem mais rastro, andam, depositam rastro; o rastro
+  se difunde e evapora. Só cabe um agente por célula. Cada capital solta
+  "comida" todo passo, com peso pela população (Censo 2022, arredondado).
+- **O mapa é real:** contorno do Brasil do Natural Earth (domínio público),
+  rasterizado numa grade de 520×520 (≈ 9 km por célula). O limo não atravessa o mar.
+- **Barreiras:** desenhe um obstáculo sobre um tubo e veja a rede se refazer
+  por outro caminho. O caderno de laboratório registra se o corte isolou
+  alguma capital e quantos passos a rede levou para se recompor.
+- **Medições ao vivo:** capitais na mesma rede (componentes conexos do rastro,
+  vizinhança 8/4), circuitos fechados (buracos cercados pela rede) e
+  comparação com a árvore geradora mínima (Prim + haversine, ≈ 11.500 km).
+- **Placa de Petri:** modo livre com flocos de aveia aleatórios numa placa de 9 cm.
