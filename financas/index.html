@@ -440,7 +440,7 @@ td select:hover, td select:focus { border-color: var(--line); background: var(--
   function readText(f) {
     return f.arrayBuffer().then(function (buf) {
       var t = new TextDecoder('utf-8').decode(buf);
-      if (t.indexOf('�') > -1) t = new TextDecoder('windows-1252').decode(buf); // bancos antigos exportam em Latin-1
+      if (t.indexOf('\uFFFD') > -1) t = new TextDecoder('windows-1252').decode(buf); // bancos antigos exportam em Latin-1
       return t;
     });
   }
