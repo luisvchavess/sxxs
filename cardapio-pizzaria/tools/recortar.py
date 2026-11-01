@@ -16,10 +16,15 @@ PRD, S = 520, 1080  # raio da pizza e tamanho da arte, iguais ao reel.js
 ap = argparse.ArgumentParser()
 ap.add_argument('foto'); ap.add_argument('sabor', choices=['margherita', 'diavola', 'parma'])
 ap.add_argument('--cx', type=float); ap.add_argument('--cy', type=float); ap.add_argument('--r', type=float)
+ap.add_argument('--brilho', type=float, default=1.0, help='ex.: 1.2 clareia 20%%')
 ap.add_argument('--margem', type=float, default=0.985, help='encolhe o círculo pra não pegar fundo')
 a = ap.parse_args()
 
 img = Image.open(a.foto).convert('RGB')
+if a.brilho != 1.0:
+    from PIL import ImageEnhance
+    img = ImageEnhance.Brightness(img).enhance(a.brilho)
+    img = ImageEnhance.Contrast(img).enhance(1 + (a.brilho - 1) * 0.4)
 w, h = img.size
 if a.cx is None:
     small = img.copy(); small.thumbnail((400, 400))

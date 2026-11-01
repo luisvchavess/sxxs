@@ -687,7 +687,7 @@
   const REEL_BASE = (document.currentScript && document.currentScript.src) || location.href;
 
   // ───────────────────────── estado ─────────────────────────
-  let ctx, canvas, PZ, BOARD, PUFF, GRAIN, VIGN, grainPattern;
+  let ctx, canvas, HERO = null, IS_PHOTO = [], PZ, BOARD, PUFF, GRAIN, VIGN, grainPattern;
   const EMBERS = (() => {
     const R = rng(99);
     return Array.from({ length: 46 }, () => ({ x: R() * W, sp: 40 + R() * 90, off: R() * H, sz: 1.5 + R() * 3.5, ph: R() * TAU, fl: 2 + R() * 5 }));
@@ -813,7 +813,7 @@
     const ps = PZ[i].width * sc;
     ctx.drawImage(PZ[i], -ps / 2, -ps / 2, ps, ps);
     ctx.restore();
-    if (steamA > 0) steam(x, y, R, t, steamA);
+    if (steamA > 0) steam(x, y, R, t, IS_PHOTO[i] ? steamA * 0.5 : steamA);
   }
 
   function tricolor(cx, y, w, k) {
@@ -941,6 +941,15 @@
     ctx.save();
     ctx.globalAlpha = 1 - out;
     ctx.translate(0, -out * 70);
+    if (HERO) {
+      // foto de abertura com zoom lento, sumindo no fundo
+      const z = 1.04 + t * 0.025;
+      const hw = W * z, hh = (hw * HERO.height) / HERO.width, top = 300 - hh / 2;
+      ctx.save();
+      ctx.globalAlpha *= eOut(prog(t, 0, 1.0));
+      ctx.drawImage(HERO, (W - hw) / 2, top, hw, hh);
+      ctx.restore();
+    }
     text(BRAND.kicker, W / 2, 712, { size: 22, weight: 600, ls: 6, color: COL.gold, align: 'center', alpha: eOut(prog(t, 0.3, 0.9)) });
 
     // letras sobem uma a uma
@@ -1182,12 +1191,33 @@
     PZ = PIZZAS.map((p, i) => makePizza(p.type, 11 + i * 17));
     // foto real (photos/<sabor>.png, gerada por tools/recortar.py) substitui o desenho
     const base = REEL_BASE;
+    await new Promise((ok) => {
+      const im = new Image();
+      im.onload = () => {
+        // bordas da foto somem em degradê (sem linha reta no fundo)
+        const c = mk(im.width, im.height), g = c.getContext('2d');
+        g.drawImage(im, 0, 0);
+        g.globalCompositeOperation = 'destination-in';
+        const v = g.createLinearGradient(0, 0, 0, c.height);
+        v.addColorStop(0, 'rgba(0,0,0,0.55)');
+        v.addColorStop(0.18, 'rgba(0,0,0,1)');
+        v.addColorStop(0.5, 'rgba(0,0,0,1)');
+        v.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = v;
+        g.fillRect(0, 0, c.width, c.height);
+        HERO = c;
+        ok();
+      };
+      im.onerror = () => ok();
+      im.src = new URL('photos/abertura.jpg', base).href;
+    });
     await Promise.all(PIZZAS.map((p, i) => new Promise((ok) => {
       const im = new Image();
       im.onload = () => {
         const c = mk(PRD * 2 + 40, PRD * 2 + 40);
         c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
         PZ[i] = c;
+        IS_PHOTO[i] = true;
         ok();
       };
       im.onerror = () => ok();
