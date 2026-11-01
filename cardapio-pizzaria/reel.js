@@ -684,6 +684,8 @@
     return c;
   }
 
+  const REEL_BASE = (document.currentScript && document.currentScript.src) || location.href;
+
   // ───────────────────────── estado ─────────────────────────
   let ctx, canvas, PZ, BOARD, PUFF, GRAIN, VIGN, grainPattern;
   const EMBERS = (() => {
@@ -1178,6 +1180,19 @@
       `400 30px ${SANS}`, `600 30px ${SANS}`, `600 50px ${HAND}`,
     ].map((f) => document.fonts.load(f, 'AaÚúçãé€$0123456789…')));
     PZ = PIZZAS.map((p, i) => makePizza(p.type, 11 + i * 17));
+    // foto real (photos/<sabor>.png, gerada por tools/recortar.py) substitui o desenho
+    const base = REEL_BASE;
+    await Promise.all(PIZZAS.map((p, i) => new Promise((ok) => {
+      const im = new Image();
+      im.onload = () => {
+        const c = mk(PRD * 2 + 40, PRD * 2 + 40);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        PZ[i] = c;
+        ok();
+      };
+      im.onerror = () => ok();
+      im.src = new URL(`photos/${p.type}.png`, base).href;
+    })));
     BOARD = makeBoard(5);
     PUFF = makePuff();
     GRAIN = makeGrain();
