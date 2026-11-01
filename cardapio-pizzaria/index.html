@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nonna Lucia — Il Menù</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root { --bg:#1A110C; --cream:#F4E9D8; --muted:rgba(244,233,216,.62); --line:rgba(244,233,216,.14); --gold:#E3AC52; --red:#C93A2B; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(1200px 700px at 30% 0%, #2c1b11, var(--bg) 60%); color:var(--cream); font-family:Inter, system-ui, sans-serif; min-height:100vh; }
+  main { max-width:1180px; margin:0 auto; padding:48px 24px 80px; display:grid; grid-template-columns:minmax(280px,420px) 1fr; gap:56px; align-items:start; }
+  .phone { position:sticky; top:24px; aspect-ratio:9/16; border-radius:28px; overflow:hidden; background:#000; box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px var(--line); cursor:pointer; }
+  .phone canvas { width:100%; height:100%; display:block; }
+  .controls { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  button, .btn { font:600 14px Inter, sans-serif; color:var(--cream); background:rgba(244,233,216,.07); border:1px solid var(--line); border-radius:999px; padding:10px 16px; cursor:pointer; text-decoration:none; }
+  button:hover, .btn:hover { border-color:var(--gold); }
+  .btn.primary { background:var(--red); border-color:var(--red); }
+  .kicker { font-weight:600; font-size:13px; letter-spacing:.35em; color:var(--gold); }
+  h1 { font-family:'Playfair Display', serif; font-weight:800; font-size:clamp(48px,7vw,88px); line-height:.95; margin:14px 0 6px; }
+  h1 em { font-weight:500; color:var(--gold); }
+  .lead { color:var(--muted); font-size:17px; line-height:1.6; max-width:52ch; }
+  .card { border:1px solid var(--line); border-radius:22px; padding:26px 26px 22px; margin-top:22px; background:rgba(244,233,216,.035); }
+  .card header { display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+  .tag { font-size:12px; font-weight:600; letter-spacing:.3em; }
+  .card h2 { font-family:'Playfair Display', serif; font-weight:800; font-size:40px; margin:8px 0 2px; }
+  .it { font-family:'Playfair Display', serif; font-style:italic; color:var(--muted); margin:0 0 16px; }
+  .price { font-family:'Playfair Display', serif; font-weight:800; font-size:34px; color:var(--gold); white-space:nowrap; }
+  .price small { font:600 14px Inter, sans-serif; margin-right:4px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .chips span { font-size:14px; font-weight:600; padding:7px 13px; border-radius:999px; border:1px solid var(--line); }
+  dl { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:10px; margin:0; }
+  dl div { border-radius:14px; background:rgba(244,233,216,.05); padding:12px 14px; }
+  dt { font-size:11px; font-weight:600; letter-spacing:.25em; color:var(--gold); }
+  dd { margin:6px 0 0; font-family:'Playfair Display', serif; font-weight:600; font-size:17px; }
+  .note { font-family:Caveat, cursive; font-weight:600; color:var(--gold); font-size:24px; margin-top:12px; }
+  footer { grid-column:1/-1; color:var(--muted); font-size:13px; text-align:center; }
+  @media (max-width:860px) { main { grid-template-columns:1fr; } .phone { position:relative; top:0; max-width:420px; margin:0 auto; width:100%; } .controls { justify-content:center; } }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <div class="phone" id="phone" title="Toque para pausar"><canvas id="c"></canvas></div>
+    <div class="controls">
+      <button id="play">❚❚ Pausar</button>
+      <button id="sound">♪ Ligar som</button>
+      <button id="restart">↺ Do início</button>
+      <a class="btn primary" href="cardapio-reels.mp4" download>Baixar MP4</a>
+    </div>
+    <audio id="audio" src="trilha.m4a" preload="auto"></audio>
+  </section>
+
+  <section>
+    <div class="kicker">PIZZERIA NAPOLETANA · FORNO A LENHA</div>
+    <h1>Nonna <em>Lucia</em></h1>
+    <p class="lead">Il Menù — os três primeiros sabores. Massa de fermentação natural de 48 horas, farinha tipo 00 e forno a lenha a 485 °C: cada pizza assa em cerca de 90 segundos e chega com a borda alta e manchada, do jeito de Nápoles.</p>
+    <div id="cards"></div>
+  </section>
+
+  <footer>Vídeo 1080 × 1920 · 30 fps · 32 s — pronto para Reels, TikTok e Stories.</footer>
+</main>
+
+<script src="reel.js"></script>
+<script>
+  const DETAILS = {
+    margherita: { massa: 'Farinha 00 · 48h · 70% hidratação', serve: '2 pessoas', extra: 'Manjericão entra na saída do forno, com fio de azeite.' },
+    diavola: { massa: 'Farinha 00 · 48h · 70% hidratação', serve: '2 pessoas', extra: 'Mel picante finalizado na hora, sobre o salame tostado.' },
+    parma: { massa: 'Farinha 00 · 48h · 70% hidratação', serve: '2 pessoas', extra: 'Base branca; Parma, rúcula e Grana entram depois do forno.' },
+  };
+  document.getElementById('cards').innerHTML = REEL.PIZZAS.map((p, i) => {
+    const d = DETAILS[p.type];
+    const heat = p.specs.find((s) => typeof s[1] === 'number');
+    return `<article class="card">
+      <header><span class="tag" style="color:${p.accent}">0${i + 1} · ${p.tag}</span><span class="price"><small>R$</small>${p.price}</span></header>
+      <h2>${p.name}</h2><p class="it">${p.italian}</p>
+      <div class="chips">${p.ingredients.map((x) => `<span>${x}</span>`).join('')}</div>
+      <dl>
+        <div><dt>TAMANHO</dt><dd>35 cm · 8 fatias</dd></div>
+        <div><dt>SERVE</dt><dd>${d.serve}</dd></div>
+        <div><dt>MASSA</dt><dd>${d.massa}</dd></div>
+        <div><dt>FORNO</dt><dd>Lenha · 485 °C · 90 s</dd></div>
+        <div><dt>PICÂNCIA</dt><dd>${'●'.repeat(heat[1])}${'○'.repeat(5 - heat[1])} ${heat[2]}</dd></div>
+      </dl>
+      <div class="note">${d.extra}</div>
+    </article>`;
+  }).join('');
+
+  const canvas = document.getElementById('c');
+  const audio = document.getElementById('audio');
+  const playBtn = document.getElementById('play');
+  const soundBtn = document.getElementById('sound');
+  let playing = true, soundOn = false, t = 0, last = null;
+
+  function syncAudio() {
+    if (!soundOn || !playing) { audio.pause(); return; }
+    if (Math.abs(audio.currentTime - t) > 0.15) audio.currentTime = t;
+    audio.play().catch(() => {});
+  }
+  function frame(now) {
+    if (last !== null && playing) {
+      t += (now - last) / 1000;
+      if (t >= REEL.DUR) { t = 0; syncAudio(); }
+    }
+    last = now;
+    REEL.render(t);
+    requestAnimationFrame(frame);
+  }
+  function togglePlay() {
+    playing = !playing;
+    playBtn.textContent = playing ? '❚❚ Pausar' : '▶ Tocar';
+    syncAudio();
+  }
+  playBtn.onclick = togglePlay;
+  document.getElementById('phone').onclick = togglePlay;
+  soundBtn.onclick = () => { soundOn = !soundOn; soundBtn.textContent = soundOn ? '♪ Som ligado' : '♪ Ligar som'; syncAudio(); };
+  document.getElementById('restart').onclick = () => { t = 0; if (!playing) togglePlay(); syncAudio(); };
+  REEL.init(canvas).then(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>
